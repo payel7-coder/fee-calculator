@@ -1,0 +1,2391 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ফরম ফিলাপ ফি ক্যালকুলেটর — Form Fill-up Fee Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Hind+Siliguri:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F1EEE0;
+    --card:#FBF8EF;
+    --ink:#211E18;
+    --ink-soft:#675F4E;
+    --green-deep:#0E4D3C;
+    --green-soft:#E2EBDF;
+    --red-stamp:#A3201B;
+    --gold:#9C6B1F;
+    --line:#C9C2A8;
+    --radius:6px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background-color:var(--paper);
+    background-image:repeating-linear-gradient(
+      to bottom,
+      rgba(150,140,105,0.10) 0px,
+      rgba(150,140,105,0.10) 1px,
+      transparent 1px,
+      transparent 29px
+    );
+    color:var(--ink);
+    font-family:'Hind Siliguri', sans-serif;
+    min-height:100vh;
+    padding: clamp(18px, 4vw, 48px) clamp(14px, 5vw, 28px) 60px;
+  }
+  .page{ max-width: 980px; margin: 0 auto; }
+
+  header{ text-align:center; margin-bottom: clamp(18px, 3vw, 28px); }
+  .eyebrow{
+    display:inline-block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform:uppercase;
+    color: var(--green-deep);
+    border: 1px solid var(--green-deep);
+    border-radius: 999px;
+    padding: 4px 14px;
+    margin-bottom: 14px;
+  }
+  h1{
+    font-family:'Tiro Bangla', serif;
+    font-weight:400;
+    font-size: clamp(28px, 4.4vw, 42px);
+    margin: 0 0 8px;
+    line-height:1.25;
+  }
+  .subtitle{
+    color: var(--ink-soft);
+    font-size: clamp(13px, 1.6vw, 15px);
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:0.02em;
+  }
+
+  /* ---------- tabs ---------- */
+  .tabs{
+    display:flex;
+    gap:4px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: clamp(20px, 3.4vw, 32px);
+  }
+  .tab-btn{
+    font-family:'Hind Siliguri', sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    background:transparent;
+    border:none;
+    padding:11px 6px;
+    margin-right:22px;
+    cursor:pointer;
+    color:var(--ink-soft);
+    border-bottom:3px solid transparent;
+    margin-bottom:-1px;
+  }
+  .tab-btn:hover{ color:var(--green-deep); }
+  .tab-btn.active{ color:var(--green-deep); border-bottom-color:var(--green-deep); }
+
+  /* ---------- calculator (unchanged) ---------- */
+  .ledger{
+    display:flex;
+    align-items:stretch;
+    background: transparent;
+  }
+  .card{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: clamp(20px, 3.4vw, 32px);
+    flex:1;
+    min-width:0;
+  }
+  .input-card{ display:flex; flex-direction:column; gap:22px; }
+
+  .field label.field-label{
+    display:block;
+    font-weight:600;
+    font-size:15px;
+    margin-bottom:3px;
+  }
+  .field .en-label{
+    display:block;
+    font-size:12px;
+    color:var(--ink-soft);
+    font-family:'IBM Plex Mono', monospace;
+    margin-bottom:10px;
+  }
+  .stepper{
+    display:flex;
+    align-items:center;
+    background: var(--green-soft);
+    border:1px solid var(--line);
+    border-radius: var(--radius);
+    width: fit-content;
+  }
+  .stepper button{
+    width:42px; height:42px;
+    border:none;
+    background:transparent;
+    color: var(--green-deep);
+    font-size:20px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:'IBM Plex Mono', monospace;
+    line-height:1;
+  }
+  .stepper button:hover{ background: rgba(14,77,60,0.10); }
+  .stepper button:active{ background: rgba(14,77,60,0.18); }
+  .stepper input{
+    width:64px;
+    text-align:center;
+    border:none;
+    background:transparent;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:19px;
+    font-weight:600;
+    color:var(--ink);
+    -moz-appearance: textfield;
+  }
+  .stepper input::-webkit-outer-spin-button,
+  .stepper input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+  .hint{
+    margin-top:8px;
+    font-size:12.5px;
+    color: var(--red-stamp);
+    font-family:'IBM Plex Mono', monospace;
+    min-height:16px;
+  }
+
+  details.adv{
+    border-top: 1px dashed var(--line);
+    padding-top:16px;
+  }
+  details.adv summary{
+    cursor:pointer;
+    font-weight:600;
+    font-size:14px;
+    color: var(--gold);
+    list-style:none;
+  }
+  details.adv summary::-webkit-details-marker{ display:none; }
+  details.adv summary::before{ content:"▸ "; }
+  details.adv[open] summary::before{ content:"▾ "; }
+  .adv-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:12px 16px;
+    margin-top:16px;
+  }
+  .adv-field{ display:flex; flex-direction:column; gap:4px; }
+  .adv-field label{ font-size:12px; color:var(--ink-soft); }
+  .adv-field input{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;
+    padding:6px 8px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:#fff;
+    color:var(--ink);
+    width:100%;
+  }
+  .adv-reset{
+    margin-top:14px;
+    background:none;
+    border:1px solid var(--ink-soft);
+    color:var(--ink-soft);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    padding:6px 12px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .adv-reset:hover{ border-color:var(--red-stamp); color:var(--red-stamp); }
+
+  .seam{
+    flex: 0 0 30px;
+    position: relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .seam::before{
+    content:'';
+    position:absolute;
+    top:18px; bottom:18px;
+    left:50%;
+    border-left: 2px dashed var(--line);
+  }
+  .seam .notch{
+    position:absolute;
+    width:22px; height:22px;
+    background: var(--paper);
+    border-radius:50%;
+    left:50%; transform:translateX(-50%);
+  }
+  .seam .notch.top{ top:-11px; }
+  .seam .notch.bottom{ bottom:-11px; }
+
+  .receipt-card{ display:flex; flex-direction:column; }
+  .receipt-title{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:18px;
+  }
+  .line-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    padding:10px 0;
+    border-bottom:1px dotted var(--line);
+    gap:14px;
+  }
+  .line-item:first-of-type{ padding-top:0; }
+  .li-label{ font-size:14.5px; font-weight:600; }
+  .li-formula{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+  .li-value{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:15px;
+    white-space:nowrap;
+  }
+
+  .stamp-wrap{
+    margin-top:24px;
+    display:flex;
+    justify-content:center;
+  }
+  .stamp{
+    width:168px; height:168px;
+    border-radius:50%;
+    border: 3px solid var(--red-stamp);
+    box-shadow: inset 0 0 0 5px rgba(163,32,27,0.12);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    color:var(--red-stamp);
+    transform: rotate(-5deg);
+    transition: transform .25s ease;
+  }
+  .stamp.pulse{ animation: thump .38s ease; }
+  @keyframes thump{
+    0%{ transform: rotate(-5deg) scale(1); }
+    40%{ transform: rotate(-5deg) scale(1.08); }
+    100%{ transform: rotate(-5deg) scale(1); }
+  }
+  .stamp-label{
+    font-family:'Tiro Bangla', serif;
+    font-size:13px;
+    margin-bottom:4px;
+  }
+  .stamp-amount{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:700;
+    font-size: clamp(18px, 2.4vw, 22px);
+  }
+
+  footer.note{
+    margin-top:30px;
+    text-align:center;
+    font-size:12px;
+    color:var(--ink-soft);
+    line-height:1.6;
+  }
+
+  @media (max-width: 720px){
+    .ledger{ flex-direction:column; }
+    .seam{ flex:0 0 30px; }
+    .seam::before{ left:18px; right:18px; top:50%; border-left:none; border-top:2px dashed var(--line); }
+    .seam .notch.top{ top:50%; left:-11px; transform:translateY(-50%); }
+    .seam .notch.bottom{ bottom:auto; top:50%; left:auto; right:-11px; transform:translateY(-50%); }
+    .adv-grid{ grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .stamp{ transition:none; }
+    .stamp.pulse{ animation:none; }
+  }
+
+  button:focus-visible, input:focus-visible, summary:focus-visible{
+    outline: 2px solid var(--green-deep);
+    outline-offset: 2px;
+  }
+
+  /* ---------- student records (new) ---------- */
+  .backend-status{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-bottom:14px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .dot{ width:7px; height:7px; border-radius:50%; background:var(--green-deep); display:inline-block; }
+  .dot.off{ background:var(--red-stamp); }
+
+  .students-toolbar{
+    display:flex;
+    gap:12px;
+    margin-bottom:14px;
+    flex-wrap:wrap;
+  }
+  #studentSearch{
+    flex:1;
+    min-width:200px;
+    padding:11px 14px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    font-family:'Hind Siliguri', sans-serif;
+    font-size:14px;
+    background:#fff;
+    color:var(--ink);
+  }
+  .btn-primary{
+    background: var(--green-deep);
+    color:#fff;
+    border:none;
+    padding:10px 18px;
+    border-radius:var(--radius);
+    font-family:'Hind Siliguri', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .btn-primary:hover{ background:#0B3C2F; }
+
+  .students-stats{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:18px;
+  }
+
+  .student-form{
+    background:var(--green-soft);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px;
+    margin-bottom:20px;
+  }
+  .student-form h4{
+    margin:0 0 14px;
+    font-family:'Tiro Bangla', serif;
+    font-size:17px;
+    font-weight:400;
+    color:var(--green-deep);
+  }
+  .form-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:12px 16px;
+  }
+  .form-field{ display:flex; flex-direction:column; gap:4px; }
+  .form-field label{ font-size:12px; color:var(--ink-soft); }
+  .form-field input, .form-field select{
+    font-family:'Hind Siliguri', sans-serif;
+    font-size:14px;
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:#fff;
+    color:var(--ink);
+  }
+  .form-actions{ margin-top:16px; display:flex; gap:10px; flex-wrap:wrap; }
+  .btn-secondary{
+    background:transparent;
+    border:1px solid var(--ink-soft);
+    color:var(--ink-soft);
+    padding:9px 16px;
+    border-radius:var(--radius);
+    font-family:'Hind Siliguri', sans-serif;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .btn-secondary:hover{ border-color:var(--ink); color:var(--ink); }
+
+  .student-list{ display:flex; flex-direction:column; gap:10px; }
+  .student-row{
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:#fff;
+    overflow:hidden;
+  }
+  .student-row.expanded{ border-color: var(--green-deep); }
+  .sr-main{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    padding:14px 16px;
+    cursor:pointer;
+    flex-wrap:wrap;
+  }
+  .sr-main:hover{ background: rgba(14,77,60,0.04); }
+  .sr-id{ display:flex; flex-direction:column; min-width:84px; }
+  .sr-roll{ font-family:'IBM Plex Mono', monospace; font-weight:600; font-size:14px; }
+  .sr-adm{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-soft); }
+  .sr-name{ flex:1; min-width:150px; font-weight:600; font-size:14.5px; }
+  .sr-name i{ color:var(--ink-soft); font-weight:400; font-style:normal; }
+  .sr-contacts{
+    display:flex; flex-direction:column;
+    font-size:12px; color:var(--ink-soft);
+    font-family:'IBM Plex Mono', monospace;
+    min-width:130px;
+  }
+  .sr-tags{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .ref-badge{
+    background:var(--green-soft);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:4px 10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--green-deep);
+    white-space:nowrap;
+  }
+  .status-pill{
+    border-radius:999px;
+    padding:4px 12px;
+    font-size:12px;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .status-pill.complete{ background:var(--green-soft); color:var(--green-deep); border:1px solid var(--green-deep); }
+  .status-pill.pending{ background:#FBEAE3; color:var(--red-stamp); border:1px solid var(--red-stamp); }
+
+  .sr-detail{ border-top:1px dashed var(--line); padding:18px; background: var(--paper); }
+  .detail-grid{ display:flex; flex-direction:column; gap:6px; max-width:320px; }
+  .detail-fee-line{ display:flex; justify-content:space-between; font-size:13.5px; font-family:'IBM Plex Mono', monospace; }
+  .detail-fee-line.total{ border-top:1px dotted var(--line); margin-top:6px; padding-top:6px; font-weight:700; color:var(--red-stamp); }
+  .detail-actions{ display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .detail-actions button{
+    font-family:'Hind Siliguri', sans-serif;
+    font-size:13px;
+    padding:7px 14px;
+    border-radius:999px;
+    cursor:pointer;
+    border:1px solid var(--line);
+    background:#fff;
+  }
+  .detail-toggle-status{ border-color:var(--green-deep) !important; color:var(--green-deep); }
+  .detail-edit{ border-color:var(--gold) !important; color:var(--gold); }
+  .detail-delete{ border-color:var(--red-stamp) !important; color:var(--red-stamp); }
+
+  .empty-note{ text-align:center; color:var(--ink-soft); padding:34px; font-size:14px; }
+
+  @media (max-width:720px){
+    .form-grid{ grid-template-columns: 1fr; }
+  }
+
+  /* ---------- PDF report feature ---------- */
+  .report-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(33,30,24,0.55);
+    z-index:1000;
+    padding:clamp(10px,3vw,40px);
+    overflow-y:auto;
+  }
+  .report-overlay.open{ display:block; }
+  .report-toolbar{
+    max-width:900px;
+    margin:0 auto 14px;
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+  }
+  .report-toolbar button{
+    font-family:'Hind Siliguri',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    padding:10px 18px;
+    border-radius:var(--radius);
+    cursor:pointer;
+    border:none;
+  }
+  #reportPrintBtn{ background:var(--green-deep); color:#fff; }
+  #reportPrintBtn:hover{ background:#0B3C2F; }
+  #reportCloseBtn{ background:#fff; color:var(--ink); border:1px solid var(--line) !important; }
+  #reportCloseBtn:hover{ border-color:var(--ink); }
+  #reportSheet{
+    max-width:900px;
+    margin:0 auto;
+    background:#fff;
+    color:#1a1a1a;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:clamp(20px,4vw,44px);
+    font-family:'Hind Siliguri',sans-serif;
+  }
+  .rpt-head{
+    text-align:center;
+    border-bottom:2px solid #1a1a1a;
+    padding-bottom:14px;
+    margin-bottom:18px;
+  }
+  .rpt-inst{ font-family:'Tiro Bangla',serif; font-size:22px; margin:0 0 3px; }
+  .rpt-dept{ font-size:13px; color:#444; margin:0 0 10px; }
+  .rpt-doc-title{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    letter-spacing:0.13em;
+    text-transform:uppercase;
+    border:1px solid #1a1a1a;
+    border-radius:999px;
+    padding:3px 14px;
+  }
+  .rpt-meta{
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:6px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    color:#555;
+    margin-bottom:18px;
+  }
+  table.rpt-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12.5px;
+    table-layout:fixed;
+  }
+  .rpt-table-wrap{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  table.rpt-table th{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:#555;
+    border-bottom:1.5px solid #1a1a1a;
+    padding:5px 6px;
+    text-align:left;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  table.rpt-table td{
+    padding:6px 6px;
+    border-bottom:1px dotted var(--line);
+    vertical-align:middle;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  /* column widths — fixed layout so table never exceeds container */
+  table.rpt-table col.c-sl   { width:28px; }
+  table.rpt-table col.c-broll{ width:72px; }
+  table.rpt-table col.c-aroll{ width:58px; }
+  table.rpt-table col.c-name { width:auto; }
+  table.rpt-table col.c-stat { width:72px; }
+  table.rpt-table col.c-rsub { width:42px; }
+  table.rpt-table col.c-rsem { width:42px; }
+  table.rpt-table col.c-fee  { width:62px; }
+  table.rpt-table td.num,table.rpt-table th.num{ text-align:right; font-family:'IBM Plex Mono',monospace; }
+  table.rpt-table tr.rpt-complete td{ background:#F0FAF5; }
+  table.rpt-table tr.rpt-pending td{ background:#FFFBF5; }
+  .rpt-status-badge{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:9.5px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    padding:2px 7px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .rpt-status-badge.complete{ background:var(--green-soft); color:var(--green-deep); }
+  .rpt-status-badge.pending{ background:#FEF3E2; color:#7A4800; }
+  table.rpt-table tfoot td{
+    font-weight:700;
+    border-top:1.5px solid #1a1a1a;
+    border-bottom:none;
+    padding-top:8px;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .rpt-summary{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:12px;
+    margin-top:20px;
+  }
+  .rpt-sumcard{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:12px 14px;
+    text-align:center;
+  }
+  .rpt-sumcard-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:#666;
+    margin-bottom:4px;
+  }
+  .rpt-sumcard-val{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:17px;
+    font-weight:700;
+  }
+  .rpt-sumcard.grand{ background:#1a1a1a; color:#fff; border-color:#1a1a1a; }
+  .rpt-sumcard.grand .rpt-sumcard-label{ color:#ccc; }
+
+  /* ---------- bulk-add modal ---------- */
+  .bulk-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(33,30,24,0.6);
+    z-index:1100;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .bulk-overlay.open{ display:flex; }
+  .bulk-modal{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    width:100%;
+    max-width:620px;
+    max-height:90vh;
+    overflow-y:auto;
+    padding:clamp(20px,4vw,32px);
+  }
+  .bulk-title{
+    font-family:'Tiro Bangla',serif;
+    font-size:20px;
+    font-weight:400;
+    margin:0 0 6px;
+  }
+  .bulk-hint{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    line-height:1.6;
+    margin-bottom:14px;
+    background:var(--green-soft);
+    border-radius:6px;
+    padding:10px 12px;
+  }
+  .bulk-hint code{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:2px 5px;
+    font-size:11px;
+  }
+  .bulk-textarea{
+    width:100%;
+    box-sizing:border-box;
+    min-height:200px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    line-height:1.65;
+    padding:12px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    resize:vertical;
+    color:var(--ink);
+    background:#fff;
+  }
+  .bulk-textarea:focus{ outline:2px solid var(--green-deep); border-color:transparent; }
+  .bulk-preview{
+    margin-top:12px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--green-deep);
+    min-height:18px;
+  }
+  .bulk-preview.warn{ color:var(--red-stamp); }
+  .bulk-actions{
+    display:flex;
+    gap:10px;
+    margin-top:14px;
+    flex-wrap:wrap;
+  }
+  .btn-bulk-import{
+    background:var(--green-deep);
+    color:#fff;
+    border:none;
+    padding:10px 20px;
+    border-radius:var(--radius);
+    font-family:'Hind Siliguri',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .btn-bulk-import:hover{ background:#0B3C2F; }
+  .btn-bulk-import:disabled{ opacity:0.5; cursor:default; }
+  .btn-bulk-cancel{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:10px 18px;
+    border-radius:var(--radius);
+    font-family:'Hind Siliguri',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .btn-bulk-cancel:hover{ border-color:var(--ink); }
+  .btn-bulk-report{
+    background:#2C5282;
+    color:#fff;
+    border:none;
+    padding:10px 18px;
+    border-radius:var(--radius);
+    font-family:'Hind Siliguri',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .btn-bulk-report:hover{ background:#1A365D; }
+
+  /* ---------- invoice feature (new) ---------- */
+  .btn-invoice{
+    background: var(--red-stamp);
+    color:#fff;
+    border:none;
+    padding:10px 18px;
+    border-radius:var(--radius);
+    font-family:'Hind Siliguri', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .btn-invoice:hover{ background:#7E1814; }
+
+  .invoice-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(33,30,24,0.55);
+    z-index:1000;
+    padding: clamp(10px,3vw,40px);
+    overflow-y:auto;
+  }
+  .invoice-overlay.open{ display:block; }
+
+  .invoice-toolbar{
+    max-width:820px;
+    margin:0 auto 14px;
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+  }
+  .invoice-toolbar button{
+    font-family:'Hind Siliguri', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    padding:10px 18px;
+    border-radius:var(--radius);
+    cursor:pointer;
+    border:none;
+  }
+  #invoicePrintBtn{ background:var(--green-deep); color:#fff; }
+  #invoicePrintBtn:hover{ background:#0B3C2F; }
+  #invoiceCloseBtn{ background:#fff; color:var(--ink); border:1px solid var(--line) !important; }
+  #invoiceCloseBtn:hover{ border-color:var(--ink); }
+
+  #invoiceSheet{
+    max-width:820px;
+    margin:0 auto;
+    background:#fff;
+    color:#1a1a1a;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding: clamp(24px,4vw,48px);
+    font-family:'Hind Siliguri', sans-serif;
+  }
+  .inv-head{
+    text-align:center;
+    border-bottom:2px solid #1a1a1a;
+    padding-bottom:16px;
+    margin-bottom:22px;
+  }
+  .inv-inst-name{
+    font-family:'Tiro Bangla', serif;
+    font-size:24px;
+    font-weight:400;
+    margin:0 0 4px;
+  }
+  .inv-dept{
+    font-size:14px;
+    color:#444;
+    margin:0 0 10px;
+  }
+  .inv-doc-title{
+    display:inline-block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    border:1px solid #1a1a1a;
+    border-radius:999px;
+    padding:4px 16px;
+  }
+  .inv-meta{
+    display:flex;
+    justify-content:space-between;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:#444;
+    margin-bottom:22px;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .inv-section-title{
+    font-family:'Tiro Bangla', serif;
+    font-size:16px;
+    font-weight:400;
+    color:var(--green-deep);
+    margin:26px 0 10px;
+    border-bottom:1px dashed var(--line);
+    padding-bottom:6px;
+  }
+  table.inv-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13.5px;
+  }
+  table.inv-table th{
+    text-align:left;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:#555;
+    border-bottom:1px solid #1a1a1a;
+    padding:6px 8px;
+  }
+  table.inv-table td{
+    padding:7px 8px;
+    border-bottom:1px dotted var(--line);
+  }
+  table.inv-table td.num, table.inv-table th.num{ text-align:right; font-family:'IBM Plex Mono', monospace; white-space:nowrap; }
+  table.inv-table tr.inv-subtotal td{ font-weight:700; border-top:1px solid #1a1a1a; border-bottom:none; }
+  table.inv-table tfoot td{ font-weight:700; border-top:2px solid #1a1a1a; border-bottom:none; padding-top:10px; }
+
+  .inv-split{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    margin-top:8px;
+  }
+  .inv-split-card{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:16px;
+  }
+  .inv-split-card.board{ background:#FBEAE3; border-color:var(--red-stamp); }
+  .inv-split-card.inst{ background:var(--green-soft); border-color:var(--green-deep); }
+  .inv-split-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  .inv-split-card.board .inv-split-label{ color:var(--red-stamp); }
+  .inv-split-card.inst .inv-split-label{ color:var(--green-deep); }
+  .inv-split-amount{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:700;
+    font-size:22px;
+  }
+  .inv-split-sub{ font-size:11.5px; color:#555; margin-top:4px; }
+
+  .inv-grand{
+    margin-top:22px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#1a1a1a;
+    color:#fff;
+    border-radius:8px;
+    padding:16px 20px;
+  }
+  .inv-grand-label{ font-family:'Tiro Bangla', serif; font-size:16px; }
+  .inv-grand-amount{ font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:22px; }
+
+  .inv-foot{
+    margin-top:30px;
+    display:flex;
+    justify-content:space-between;
+    gap:20px;
+    font-size:12px;
+    color:#555;
+    flex-wrap:wrap;
+  }
+  .inv-sign{
+    text-align:center;
+    min-width:160px;
+  }
+  .inv-sign-line{ border-top:1px solid #1a1a1a; margin-top:40px; padding-top:6px; }
+  .inv-note{
+    margin-top:22px;
+    font-size:11px;
+    color:#777;
+    line-height:1.6;
+    border-top:1px dashed var(--line);
+    padding-top:10px;
+  }
+
+  @media print{
+    /* Hide everything on body except the open overlay */
+    html, body{ background:#fff !important; margin:0; padding:0; }
+    body > *{ display:none !important; }
+
+    /* Show only the open overlay, in normal document flow */
+    .invoice-overlay.open,
+    .report-overlay.open{
+      display:block !important;
+      position:static !important;
+      width:100% !important;
+      height:auto !important;
+      overflow:visible !important;
+      background:#fff !important;
+      padding:0 !important;
+      margin:0 !important;
+      z-index:auto !important;
+    }
+
+    .invoice-toolbar, .report-toolbar{ display:none !important; }
+
+    #invoiceSheet, #reportSheet{
+      border:none !important;
+      border-radius:0 !important;
+      max-width:100% !important;
+      padding:0 !important;
+      margin:0 !important;
+      box-shadow:none !important;
+    }
+
+    /* Report-specific print fixes */
+    .rpt-table-wrap{ overflow:visible !important; }
+    table.rpt-table{ font-size:8.5px; table-layout:fixed; width:100%; }
+    table.rpt-table th{ font-size:7.5px; padding:3px 4px; white-space:normal; letter-spacing:0; }
+    table.rpt-table td{ padding:3px 4px; white-space:normal; word-break:break-word; }
+    table.rpt-table col.c-sl   { width:20px; }
+    table.rpt-table col.c-broll{ width:58px; }
+    table.rpt-table col.c-aroll{ width:44px; }
+    table.rpt-table col.c-name { width:auto; }
+    table.rpt-table col.c-stat { width:52px; }
+    table.rpt-table col.c-rsub { width:30px; }
+    table.rpt-table col.c-rsem { width:30px; }
+    table.rpt-table col.c-fee  { width:48px; }
+    .rpt-status-badge{ font-size:7px; padding:1px 4px; }
+    .rpt-summary{ grid-template-columns:repeat(5,1fr); }
+    .rpt-sumcard{ padding:8px; }
+    .rpt-sumcard-val{ font-size:13px; }
+
+    /* Keep table header repeated on every printed page */
+    table.rpt-table thead{ display:table-header-group; }
+    table.rpt-table tfoot{ display:none !important; }
+    table.inv-table tfoot{ display:none !important; }
+
+    /* Avoid row splitting across pages */
+    table.rpt-table tr{ page-break-inside:avoid; }
+
+    /* Hide non-list sections from print */
+    .rpt-summary{ display:none !important; }
+    .inv-foot{ display:none !important; }
+    .inv-note{ display:none !important; }
+
+    @page{ size:A4 landscape; margin:10mm; }
+  }
+
+  /* ---------- auth (new) ---------- */
+  .auth-overlay{
+    position:fixed;
+    inset:0;
+    background-color:var(--paper);
+    background-image:repeating-linear-gradient(
+      to bottom,
+      rgba(150,140,105,0.10) 0px,
+      rgba(150,140,105,0.10) 1px,
+      transparent 1px,
+      transparent 29px
+    );
+    z-index:2000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .auth-overlay.hidden{ display:none; }
+  .auth-card{
+    width:100%;
+    max-width:380px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding: clamp(24px,5vw,36px);
+  }
+  .auth-title{
+    font-family:'Tiro Bangla', serif;
+    font-size:22px;
+    font-weight:400;
+    text-align:center;
+    margin:0 0 4px;
+  }
+  .auth-subtitle{
+    text-align:center;
+    font-size:12px;
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--ink-soft);
+    margin-bottom:22px;
+  }
+  .auth-tabs{
+    display:flex;
+    border:1px solid var(--line);
+    border-radius:999px;
+    overflow:hidden;
+    margin-bottom:22px;
+  }
+  .auth-tab-btn{
+    flex:1;
+    background:transparent;
+    border:none;
+    padding:9px 0;
+    font-family:'Hind Siliguri', sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .auth-tab-btn.active{ background:var(--green-deep); color:#fff; }
+  .auth-field{ display:flex; flex-direction:column; gap:4px; margin-bottom:14px; }
+  .auth-field label{ font-size:12px; color:var(--ink-soft); }
+  .auth-field input{
+    font-family:'Hind Siliguri', sans-serif;
+    font-size:14.5px;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:#fff;
+    color:var(--ink);
+  }
+  .auth-submit{
+    width:100%;
+    background:var(--green-deep);
+    color:#fff;
+    border:none;
+    padding:12px 0;
+    border-radius:var(--radius);
+    font-family:'Hind Siliguri', sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    cursor:pointer;
+    margin-top:4px;
+  }
+  .auth-submit:hover{ background:#0B3C2F; }
+  .auth-submit:disabled{ opacity:0.6; cursor:default; }
+  .auth-msg{
+    margin-top:14px;
+    font-size:12.5px;
+    font-family:'IBM Plex Mono', monospace;
+    text-align:center;
+    min-height:16px;
+    line-height:1.5;
+  }
+  .auth-msg.error{ color:var(--red-stamp); }
+  .auth-msg.ok{ color:var(--green-deep); }
+
+  .auth-bar{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:12px;
+    margin-top:10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .auth-logout-btn{
+    background:transparent;
+    border:1px solid var(--ink-soft);
+    color:var(--ink-soft);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    padding:4px 12px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .auth-logout-btn:hover{ border-color:var(--red-stamp); color:var(--red-stamp); }
+</style>
+</head>
+<body>
+
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-card">
+    <p class="auth-title">ফরম ফিলাপ ফি ক্যালকুলেটর</p>
+    <p class="auth-subtitle">Sign in to access your saved records</p>
+
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab-btn active" id="authTabSignin" data-mode="signin">সাইন ইন · Sign In</button>
+      <button type="button" class="auth-tab-btn" id="authTabSignup" data-mode="signup">নতুন · Sign Up</button>
+    </div>
+
+    <div class="auth-field">
+      <label for="authEmail">ইমেইল · Email</label>
+      <input type="email" id="authEmail" autocomplete="email" placeholder="you@example.com">
+    </div>
+    <div class="auth-field">
+      <label for="authPassword">পাসওয়ার্ড · Password</label>
+      <input type="password" id="authPassword" autocomplete="current-password" placeholder="••••••••">
+    </div>
+
+    <button class="auth-submit" id="authSubmitBtn">সাইন ইন করুন · Sign In</button>
+    <div class="auth-msg" id="authMsg"></div>
+  </div>
+</div>
+
+<div class="page" id="appRoot" style="display:none;">
+
+  <header>
+    <span class="eyebrow">Diploma · Polytechnic</span>
+    <h1>ফরম ফিলাপ ফি ক্যালকুলেটর</h1>
+    <div class="subtitle">Referred Subject &amp; Semester based Fee Calculator</div>
+    <div class="auth-bar">
+      <span id="authUserLabel"></span>
+      <button class="auth-logout-btn" id="logoutBtn">লগআউট · Logout</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="calc">ফি ক্যালকুলেটর · Calculator</button>
+    <button class="tab-btn" data-tab="students">শিক্ষার্থী তথ্য · Student Records</button>
+  </nav>
+
+  <!-- ============ CALCULATOR TAB (unchanged) ============ -->
+  <div id="calcView">
+    <div class="ledger">
+
+      <section class="card input-card">
+
+        <div class="field">
+          <label class="field-label" for="refSub">রেফার্ড বিষয়ের সংখ্যা</label>
+          <span class="en-label">Number of referred subjects</span>
+          <div class="stepper">
+            <button type="button" id="subMinus" aria-label="কমান">−</button>
+            <input type="number" id="refSub" value="0" min="0" max="60" inputmode="numeric">
+            <button type="button" id="subPlus" aria-label="বাড়ান">+</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="refSem">রেফার্ড সেমিস্টারের সংখ্যা</label>
+          <span class="en-label">Number of semesters referred</span>
+          <div class="stepper">
+            <button type="button" id="semMinus" aria-label="কমান">−</button>
+            <input type="number" id="refSem" value="0" min="0" max="60" inputmode="numeric">
+            <button type="button" id="semPlus" aria-label="বাড়ান">+</button>
+          </div>
+          <div class="hint" id="semHint"></div>
+        </div>
+
+        <details class="adv">
+          <summary>ফি হার সম্পাদনা করুন (ঐচ্ছিক) — Edit fee rates</summary>
+          <div class="adv-grid">
+            <div class="adv-field"><label>Exam Fee (base)</label><input type="number" id="r_examBase" value="700"></div>
+            <div class="adv-field"><label>Referred Subject Fee</label><input type="number" id="r_refSubFee" value="125"></div>
+            <div class="adv-field"><label>Marksheet Fee (base)</label><input type="number" id="r_markBase" value="80"></div>
+            <div class="adv-field"><label>Referred Marksheet Fee</label><input type="number" id="r_refMarkFee" value="80"></div>
+            <div class="adv-field"><label>Center Fee (base)</label><input type="number" id="r_centerBase" value="600"></div>
+            <div class="adv-field"><label>Referred Center Fee</label><input type="number" id="r_refCenterFee" value="250"></div>
+            <div class="adv-field"><label>Practical Fee (per subject)</label><input type="number" id="r_practicalRate" value="40"></div>
+            <div class="adv-field"><label>No. of Practical Subjects</label><input type="number" id="r_practicalCount" value="6"></div>
+            <div class="adv-field"><label>Question Fee</label><input type="number" id="r_questionFee" value="50"></div>
+          </div>
+          <button type="button" class="adv-reset" id="resetRates">ডিফল্ট হারে ফিরে যান · Reset to default</button>
+        </details>
+
+      </section>
+
+      <div class="seam" aria-hidden="true">
+        <div class="notch top"></div>
+        <div class="notch bottom"></div>
+      </div>
+
+      <section class="card receipt-card">
+        <div class="receipt-title">ফি বিবরণ · Fee Breakdown</div>
+
+        <div class="line-item">
+          <div>
+            <div class="li-label">পরীক্ষার ফি · Exam Fee</div>
+            <div class="li-formula" id="f_exam"></div>
+          </div>
+          <div class="li-value" id="v_exam">৳0</div>
+        </div>
+
+        <div class="line-item">
+          <div>
+            <div class="li-label">মার্কশীট ফি · Marksheet Fee</div>
+            <div class="li-formula" id="f_mark"></div>
+          </div>
+          <div class="li-value" id="v_mark">৳0</div>
+        </div>
+
+        <div class="line-item">
+          <div>
+            <div class="li-label">সেন্টার ফি · Center Fee</div>
+            <div class="li-formula" id="f_center"></div>
+          </div>
+          <div class="li-value" id="v_center">৳0</div>
+        </div>
+
+        <div class="line-item">
+          <div>
+            <div class="li-label">প্র্যাকটিকাল ফি · Practical Fee</div>
+            <div class="li-formula" id="f_practical"></div>
+          </div>
+          <div class="li-value" id="v_practical">৳0</div>
+        </div>
+
+        <div class="line-item">
+          <div>
+            <div class="li-label">প্রশ্নপত্র ফি · Question Fee</div>
+            <div class="li-formula" id="f_question"></div>
+          </div>
+          <div class="li-value" id="v_question">৳0</div>
+        </div>
+
+        <div class="stamp-wrap">
+          <div class="stamp" id="stamp">
+            <div class="stamp-label">সর্বমোট ফি</div>
+            <div class="stamp-amount" id="v_total">৳0</div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <footer class="note">
+      * হিসাবটি বর্তমান ফি কাঠামোর ভিত্তিতে তৈরি। প্রতিষ্ঠান/বোর্ড নির্ধারিত হার পরিবর্তিত হলে উপরের "ফি হার সম্পাদনা করুন" থেকে আপডেট করুন।<br>
+      Based on the current fee structure — update rates above if the institute/board revises them.
+    </footer>
+  </div>
+
+  <!-- ============ STUDENT RECORDS TAB (new) ============ -->
+  <div id="studentsView" style="display:none;">
+
+    <div class="backend-status" id="backendStatus">
+      <span class="dot" id="backendDot"></span>
+      <span id="backendText">যাচাই করা হচ্ছে...</span>
+    </div>
+
+    <div class="students-toolbar">
+      <input type="text" id="studentSearch" placeholder="বোর্ড রোল / ভর্তি রোল / নাম দিয়ে খুঁজুন · Search by roll or name">
+      <button class="btn-primary" id="addStudentBtn">+ নতুন শিক্ষার্থী · Add Student</button>
+      <button class="btn-primary" id="bulkAddBtn" style="background:#2C5282;">⊞ বাল্ক অ্যাড · Bulk Add</button>
+      <button class="btn-bulk-report" id="reportBtn">📄 রিপোর্ট · PDF Report</button>
+      <button class="btn-invoice" id="invoiceBtn">🧾 ইনভয়েস · Invoice</button>
+    </div>
+
+    <div class="students-stats" id="studentsStats"></div>
+
+    <div class="student-form" id="studentForm" style="display:none;">
+      <h4 id="formTitle">নতুন শিক্ষার্থী যুক্ত করুন · Add Student</h4>
+      <div class="form-grid">
+        <div class="form-field">
+          <label>বোর্ড রোল · Board Roll *</label>
+          <input type="text" id="f_boardRoll" inputmode="numeric">
+        </div>
+        <div class="form-field">
+          <label>ভর্তি রোল · Admission Roll</label>
+          <input type="text" id="f_admissionRoll">
+        </div>
+        <div class="form-field">
+          <label>নাম · Name</label>
+          <input type="text" id="f_name">
+        </div>
+        <div class="form-field">
+          <label>স্ট্যাটাস · Status</label>
+          <select id="f_status">
+            <option value="pending">অসম্পন্ন · Pending</option>
+            <option value="complete">সম্পন্ন · Complete</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>ফোন নম্বর · Phone</label>
+          <input type="text" id="f_phone" inputmode="tel">
+        </div>
+        <div class="form-field">
+          <label>গার্ডিয়ান ফোন · Guardian Phone</label>
+          <input type="text" id="f_guardianPhone" inputmode="tel">
+        </div>
+        <div class="form-field">
+          <label>রেফার্ড বিষয় সংখ্যা · Referred Subjects</label>
+          <input type="number" id="f_refSub" value="0" min="0">
+        </div>
+        <div class="form-field">
+          <label>রেফার্ড সেমিস্টার সংখ্যা · Referred Semesters</label>
+          <input type="number" id="f_refSem" value="0" min="0">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-primary" id="saveStudentBtn">সংরক্ষণ করুন · Save</button>
+        <button class="btn-secondary" id="cancelStudentBtn">বাতিল · Cancel</button>
+      </div>
+    </div>
+
+    <div class="student-list" id="studentList"></div>
+
+    <footer class="note">
+      তথ্য আপনার অ্যাকাউন্টে নিরাপদে সংরক্ষিত হয় — যেকোনো ডিভাইস থেকে সাইন ইন করে দেখা যাবে।<br>
+      Data is saved securely to your account — accessible from any device when signed in.
+    </footer>
+  </div>
+
+</div>
+
+<div class="invoice-overlay" id="invoiceOverlay">
+  <div class="invoice-toolbar">
+    <button id="invoicePrintBtn">🖨 প্রিন্ট / PDF সেভ করুন · Print / Save as PDF</button>
+    <button id="invoiceCloseBtn">✕ বন্ধ করুন · Close</button>
+  </div>
+  <div id="invoiceSheet"></div>
+</div>
+
+<!-- PDF Report overlay -->
+<div class="report-overlay" id="reportOverlay">
+  <div class="report-toolbar">
+    <button id="reportPrintBtn">🖨 প্রিন্ট / PDF সেভ করুন · Print / Save as PDF</button>
+    <button id="reportCloseBtn">✕ বন্ধ করুন · Close</button>
+  </div>
+  <div id="reportSheet"></div>
+</div>
+
+<!-- Bulk Add modal -->
+<div class="bulk-overlay" id="bulkOverlay">
+  <div class="bulk-modal">
+    <p class="bulk-title">⊞ বাল্ক শিক্ষার্থী যুক্ত করুন · Bulk Add Students</p>
+    <div class="bulk-hint">
+      প্রতি লাইনে একজন শিক্ষার্থীর তথ্য দিন · One student per line, fields separated by comma or tab:<br>
+      <code>boardRoll, admissionRoll, name, phone, guardianPhone, refSubjects, refSemesters</code><br><br>
+      উদাহরণ · Example:<br>
+      <code>767099, 7-044, Rahim Hossain, 01700000001, 01800000001, 2, 1</code><br><br>
+      ⚠ শুধুমাত্র বোর্ড রোল আবশ্যক · Only Board Roll is required. Leave other fields blank if unknown.
+      Duplicate board rolls (already in your list) will be skipped.
+    </div>
+    <textarea class="bulk-textarea" id="bulkTextarea" placeholder="767099, 7-044, Rahim, 01700000001, 01800000001, 2, 1
+767100, 7-045, Karim, , , 0, 0
+767101, , Fatema, 01711111111, , 1, 1"></textarea>
+    <div class="bulk-preview" id="bulkPreview"></div>
+    <div class="bulk-actions">
+      <button class="btn-bulk-import" id="bulkImportBtn" disabled>⊕ ইম্পোর্ট করুন · Import</button>
+      <button class="btn-bulk-cancel" id="bulkCancelBtn">বাতিল · Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  /* ============================================================
+     SHARED CONSTANTS
+  ============================================================ */
+  const DEFAULT_RATES = {
+    examBase:700, refSubFee:125,
+    markBase:80, refMarkFee:80,
+    centerBase:600, refCenterFee:250,
+    practicalRate:40, practicalCount:6,
+    questionFee:50
+  };
+
+  const SEED_STUDENTS = [{"boardRoll": "667094", "admissionRoll": "7-001", "name": "", "phone": "", "guardianPhone": "", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "690511", "admissionRoll": "7-002", "name": "Partha Sarker", "phone": "01608392690", "guardianPhone": "01612328125", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767015", "admissionRoll": "7-003", "name": "Tanvir Ahmed Jisan", "phone": "01310430716", "guardianPhone": "01832557959", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767017", "admissionRoll": "7-004", "name": "Tauhidul Islam Tayyef", "phone": "01534819229", "guardianPhone": "01713042213", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767018", "admissionRoll": "7-005", "name": "Al Saad Hossain Rafid", "phone": "01601701840", "guardianPhone": "01929443309", "refSubjects": 2, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767019", "admissionRoll": "7-006", "name": "Shawon", "phone": "01609812886", "guardianPhone": "01732174937", "refSubjects": 3, "refSemesters": 3, "status": "pending"}, {"boardRoll": "767020", "admissionRoll": "7-007", "name": "Md. Mahabub Hasan Durjoy", "phone": "01910000500", "guardianPhone": "01711370827", "refSubjects": 3, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767021", "admissionRoll": "7-008", "name": "Abir Saifullah", "phone": "01715506440", "guardianPhone": "01711396951", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767022", "admissionRoll": "7-009", "name": "Md. Abu Sahid", "phone": "01880033827", "guardianPhone": "01609785165", "refSubjects": 2, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767023", "admissionRoll": "7-010", "name": "Sadnan Sani", "phone": "01960072290", "guardianPhone": "01829260600", "refSubjects": 2, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767025", "admissionRoll": "7-011", "name": "Sanjida Akter", "phone": "", "guardianPhone": "01912487721", "refSubjects": 2, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767026", "admissionRoll": "7-012", "name": "Ensan Ahmad", "phone": "19309390701", "guardianPhone": "01935899042", "refSubjects": 5, "refSemesters": 4, "status": "pending"}, {"boardRoll": "767027", "admissionRoll": "7-013", "name": "Tarequl Islam", "phone": "01613524209", "guardianPhone": "01301822065", "refSubjects": 4, "refSemesters": 3, "status": "pending"}, {"boardRoll": "767028", "admissionRoll": "7-014", "name": "Mujahid Islam", "phone": "01303129515", "guardianPhone": "01745081391", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767029", "admissionRoll": "7-015", "name": "Md. Shanto Sharker", "phone": "01760752922", "guardianPhone": "01933463835", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767030", "admissionRoll": "7-016", "name": "Sumaiya Sharin Shahi", "phone": "01730862010", "guardianPhone": "01727695159", "refSubjects": 3, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767031", "admissionRoll": "7-017", "name": "NibirUddin Mohon", "phone": "01401328182", "guardianPhone": "01723151088", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767032", "admissionRoll": "7-018", "name": "Nafis Iqbal Apon", "phone": "01928023632", "guardianPhone": "01713347597", "refSubjects": 5, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767034", "admissionRoll": "7-019", "name": "Jihad Bhuaya", "phone": "01402875394", "guardianPhone": "01722132207", "refSubjects": 3, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767035", "admissionRoll": "7-020", "name": "Md. Ahnaf Omi", "phone": "01688425213", "guardianPhone": "01937656761", "refSubjects": 4, "refSemesters": 3, "status": "pending"}, {"boardRoll": "767039", "admissionRoll": "7-021", "name": "Habibur Rahman Mridul", "phone": "01729987433", "guardianPhone": "19211716363", "refSubjects": 3, "refSemesters": 3, "status": "pending"}, {"boardRoll": "767040", "admissionRoll": "7-022", "name": "Md. Abdur Rob", "phone": "01685498699", "guardianPhone": "01763650140", "refSubjects": 2, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767042", "admissionRoll": "7-023", "name": "Md. Rasel Miah", "phone": "01730669176", "guardianPhone": "01738341129", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767044", "admissionRoll": "7-024", "name": "Ashraful Islam Anto", "phone": "01959262218", "guardianPhone": "01716965801", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "767045", "admissionRoll": "7-025", "name": "Faysal Rohman Niloy", "phone": "01773648497", "guardianPhone": "01784727035", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767046", "admissionRoll": "7-026", "name": "Siyam Vuiya", "phone": "01736903992", "guardianPhone": "01727330516", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767053", "admissionRoll": "7-027", "name": "Shehojad Ahamed Rafi", "phone": "01700508217", "guardianPhone": "01719889525", "refSubjects": 4, "refSemesters": 3, "status": "pending"}, {"boardRoll": "767056", "admissionRoll": "7-028", "name": "Asif Ar Rahman", "phone": "01312677759", "guardianPhone": "01947391920", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767058", "admissionRoll": "7-029", "name": "Fahim Ahmed Dipu", "phone": "01947782227", "guardianPhone": "01540032334", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "767061", "admissionRoll": "7-030", "name": "Md. Hamid Abid Talukder Tanvir", "phone": "01312738184", "guardianPhone": "01714607861", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "767066", "admissionRoll": "7-031", "name": "Shamima Akther Halima", "phone": "01771717419", "guardianPhone": "01771717419", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767067", "admissionRoll": "7-032", "name": "Sayem Hasan", "phone": "01300926820", "guardianPhone": "01817051153", "refSubjects": 2, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767070", "admissionRoll": "7-033", "name": "Riazul Hasan", "phone": "01326824561", "guardianPhone": "01791107390", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "767071", "admissionRoll": "7-034", "name": "Md. Nazmul Hossain Shadin", "phone": "01313156323", "guardianPhone": "01318587178", "refSubjects": 3, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767072", "admissionRoll": "7-035", "name": "Ibrahim", "phone": "01799922456", "guardianPhone": "01933011522", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "767077", "admissionRoll": "7-036", "name": "Md. Himayet Hossain", "phone": "01948726378", "guardianPhone": "01928920753", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "767080", "admissionRoll": "7-037", "name": "Mir Md. Nazmul Hasan", "phone": "01957301304", "guardianPhone": "01712108419", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "767081", "admissionRoll": "7-038", "name": "S.M. Tanvir A Noor", "phone": "01797183426", "guardianPhone": "01990981740", "refSubjects": 3, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767083", "admissionRoll": "7-039", "name": "Jabed Hossain", "phone": "01734983524", "guardianPhone": "01708083879", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767084", "admissionRoll": "7-040", "name": "Most.Soniya Akter", "phone": "01967140797", "guardianPhone": "01777512897", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "767088", "admissionRoll": "7-041", "name": "Syamon Muntaha", "phone": "01326838326", "guardianPhone": "01737496170", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767089", "admissionRoll": "7-042", "name": "Ayasha Rahman Rimi", "phone": "01915233664", "guardianPhone": "01916760796", "refSubjects": 4, "refSemesters": 3, "status": "pending"}, {"boardRoll": "794050", "admissionRoll": "7-043", "name": "Nahidul Islam Nahin", "phone": "01796255953", "guardianPhone": "01613306275", "refSubjects": 7, "refSemesters": 5, "status": "pending"}];
+
+  const $ = id => document.getElementById(id);
+
+  /* ============================================================
+     SUPABASE CONFIG + CLIENT
+  ============================================================ */
+  const SUPABASE_URL = 'https://bbtwqgoagdmbtjkbbxla.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJidHdxZ29hZ2RtYnRqa2JieGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMzA4NzksImV4cCI6MjA5NzYwNjg3OX0.qNwj3YApKzHLAniXi3KMf1hkChPsm9aySVwgj0c4Lcg';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUser = null;
+  let backendActive = false;
+
+  /* ============================================================
+     STORAGE LAYER  (Supabase — one row per user in app_data)
+  ============================================================ */
+  let appDataCache = null; // { students, rates } cached after first fetch
+
+  async function fetchAppDataRow(){
+    if(!currentUser) return null;
+    try{
+      const { data, error } = await supabaseClient
+        .from('app_data')
+        .select('students, rates')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+      if(error){ console.error('fetchAppDataRow error', error); return null; }
+      appDataCache = data || { students: null, rates: null };
+      return appDataCache;
+    }catch(e){
+      console.error('fetchAppDataRow exception', e);
+      return null;
+    }
+  }
+
+  async function storageGet(key){
+    if(!currentUser) return null;
+    if(!appDataCache){ await fetchAppDataRow(); }
+    if(!appDataCache) return null;
+    if(key === 'ffc_students') return appDataCache.students ? JSON.stringify(appDataCache.students) : null;
+    if(key === 'ffc_rates') return appDataCache.rates ? JSON.stringify(appDataCache.rates) : null;
+    return null;
+  }
+
+  async function storageSet(key, value){
+    if(!currentUser) return false;
+    try{
+      const parsed = JSON.parse(value);
+      const column = (key === 'ffc_students') ? 'students' : 'rates';
+      const { error } = await supabaseClient
+        .from('app_data')
+        .upsert({ user_id: currentUser.id, [column]: parsed }, { onConflict: 'user_id' });
+      if(error){ console.error('storageSet error', error); return false; }
+      if(!appDataCache) appDataCache = {};
+      appDataCache[column] = parsed;
+      return true;
+    }catch(e){
+      console.error('storageSet exception', e);
+      return false;
+    }
+  }
+
+  let students = [];
+
+  /* ============================================================
+     CALCULATOR LOGIC (shared with student detail view)
+  ============================================================ */
+  function getRates(){
+    return {
+      examBase: +$('r_examBase').value || 0,
+      refSubFee: +$('r_refSubFee').value || 0,
+      markBase: +$('r_markBase').value || 0,
+      refMarkFee: +$('r_refMarkFee').value || 0,
+      centerBase: +$('r_centerBase').value || 0,
+      refCenterFee: +$('r_refCenterFee').value || 0,
+      practicalRate: +$('r_practicalRate').value || 0,
+      practicalCount: +$('r_practicalCount').value || 0,
+      questionFee: +$('r_questionFee').value || 0
+    };
+  }
+
+  function setRateInputs(rates){
+    $('r_examBase').value = rates.examBase;
+    $('r_refSubFee').value = rates.refSubFee;
+    $('r_markBase').value = rates.markBase;
+    $('r_refMarkFee').value = rates.refMarkFee;
+    $('r_centerBase').value = rates.centerBase;
+    $('r_refCenterFee').value = rates.refCenterFee;
+    $('r_practicalRate').value = rates.practicalRate;
+    $('r_practicalCount').value = rates.practicalCount;
+    $('r_questionFee').value = rates.questionFee;
+  }
+
+  function computeFees(R, S, rt){
+    const exam = rt.examBase + R*rt.refSubFee;
+    const mark = rt.markBase + S*rt.refMarkFee;
+    const center = rt.centerBase + S*rt.refCenterFee;
+    const practical = rt.practicalRate * rt.practicalCount;
+    const question = rt.questionFee;
+    const total = exam + mark + center + practical + question;
+    return {exam, mark, center, practical, question, total};
+  }
+
+  function fmt(n){
+    n = Math.round(n);
+    return '৳' + n.toLocaleString('en-IN');
+  }
+
+  async function persistRates(){
+    const ok = await storageSet('ffc_rates', JSON.stringify(getRates()));
+    backendActive = ok;
+    updateBackendStatus();
+    return ok;
+  }
+  async function persistStudents(){
+    const ok = await storageSet('ffc_students', JSON.stringify(students));
+    backendActive = ok;
+    updateBackendStatus();
+    return ok;
+  }
+
+  function updateBackendStatus(){
+    const dot = $('backendDot');
+    const text = $('backendText');
+    if (!dot || !text) return;
+    if (currentUser && backendActive){
+      dot.classList.remove('off');
+      text.textContent = `অ্যাকাউন্টে সংরক্ষিত হচ্ছে · Synced to your account (${currentUser.email})`;
+    } else if (currentUser){
+      dot.classList.add('off');
+      text.textContent = 'সংরক্ষণ ব্যর্থ হয়েছে — ইন্টারনেট সংযোগ পরীক্ষা করুন · Save failed — check your connection';
+    } else {
+      dot.classList.add('off');
+      text.textContent = 'সাইন ইন করা নেই · Not signed in';
+    }
+  }
+
+  /* ----- calculator tab ----- */
+  const refSub = $('refSub'), refSem = $('refSem');
+
+  function clampInputs(){
+    let R = parseInt(refSub.value, 10); if(isNaN(R) || R<0) R = 0;
+    let S = parseInt(refSem.value, 10); if(isNaN(S) || S<0) S = 0;
+    if(R === 0) S = 0;
+    if(S > R) S = R;
+    refSub.value = R;
+    refSem.value = S;
+    return {R, S};
+  }
+
+  function recalc(pulse){
+    const {R, S} = clampInputs();
+    const rt = getRates();
+    const f = computeFees(R, S, rt);
+
+    $('f_exam').textContent = `${rt.examBase} + ${R}×${rt.refSubFee}`;
+    $('f_mark').textContent = `${rt.markBase} + ${S}×${rt.refMarkFee}`;
+    $('f_center').textContent = `${rt.centerBase} + ${S}×${rt.refCenterFee}`;
+    $('f_practical').textContent = `${rt.practicalRate}×${rt.practicalCount}`;
+    $('f_question').textContent = `flat`;
+
+    $('v_exam').textContent = fmt(f.exam);
+    $('v_mark').textContent = fmt(f.mark);
+    $('v_center').textContent = fmt(f.center);
+    $('v_practical').textContent = fmt(f.practical);
+    $('v_question').textContent = fmt(f.question);
+    $('v_total').textContent = fmt(f.total);
+
+    if(pulse){
+      const st = $('stamp');
+      st.classList.remove('pulse');
+      void st.offsetWidth;
+      st.classList.add('pulse');
+    }
+  }
+
+  $('subMinus').addEventListener('click', () => { refSub.value = Math.max(0, (+refSub.value||0)-1); recalc(true); });
+  $('subPlus').addEventListener('click', () => { refSub.value = (+refSub.value||0)+1; recalc(true); });
+  $('semMinus').addEventListener('click', () => { refSem.value = Math.max(0, (+refSem.value||0)-1); recalc(true); });
+  $('semPlus').addEventListener('click', () => { refSem.value = (+refSem.value||0)+1; recalc(true); });
+
+  refSub.addEventListener('input', () => recalc(true));
+  refSem.addEventListener('input', () => recalc(true));
+
+  document.querySelectorAll('.adv-grid input').forEach(inp => {
+    inp.addEventListener('input', async () => {
+      recalc(true);
+      await persistRates();
+      renderStudentList();
+    });
+  });
+
+  $('resetRates').addEventListener('click', async () => {
+    setRateInputs(DEFAULT_RATES);
+    recalc(true);
+    await persistRates();
+    renderStudentList();
+  });
+
+  /* ============================================================
+     TAB SWITCHING
+  ============================================================ */
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.tab;
+      $('calcView').style.display = (tab === 'calc') ? 'block' : 'none';
+      $('studentsView').style.display = (tab === 'students') ? 'block' : 'none';
+    });
+  });
+
+  /* ============================================================
+     STUDENT RECORDS
+  ============================================================ */
+  let expandedKey = null;
+  let editingKey = null;
+
+  function studentKey(s){ return s.boardRoll || ('adm-' + s.admissionRoll); }
+
+  function escapeHtml(str){
+    return String(str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function filterStudents(q){
+    q = (q || '').trim().toLowerCase();
+    if(!q) return students;
+    return students.filter(s =>
+      (s.boardRoll && s.boardRoll.toLowerCase().includes(q)) ||
+      (s.admissionRoll && s.admissionRoll.toLowerCase().includes(q)) ||
+      (s.name && s.name.toLowerCase().includes(q))
+    );
+  }
+
+  function renderDetail(s){
+    const rt = getRates();
+    const f = computeFees(s.refSubjects||0, s.refSemesters||0, rt);
+    return `
+      <div class="sr-detail">
+        <div class="detail-grid">
+          <div class="detail-fee-line"><span>পরীক্ষার ফি</span><span>${fmt(f.exam)}</span></div>
+          <div class="detail-fee-line"><span>মার্কশীট ফি</span><span>${fmt(f.mark)}</span></div>
+          <div class="detail-fee-line"><span>সেন্টার ফি</span><span>${fmt(f.center)}</span></div>
+          <div class="detail-fee-line"><span>প্র্যাকটিকাল ফি</span><span>${fmt(f.practical)}</span></div>
+          <div class="detail-fee-line"><span>প্রশ্নপত্র ফি</span><span>${fmt(f.question)}</span></div>
+          <div class="detail-fee-line total"><span>সর্বমোট</span><span>${fmt(f.total)}</span></div>
+        </div>
+        <div class="detail-actions">
+          <button class="detail-toggle-status" data-action="toggle" data-key="${escapeHtml(studentKey(s))}">${s.status==='complete' ? '↺ অসম্পন্ন করুন' : '✓ ফরম ফিলাপ সম্পন্ন করুন'}</button>
+          <button class="detail-edit" data-action="edit" data-key="${escapeHtml(studentKey(s))}">✎ সম্পাদনা · Edit</button>
+          <button class="detail-delete" data-action="delete" data-key="${escapeHtml(studentKey(s))}">🗑 মুছুন · Delete</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderStudentList(){
+    const list = filterStudents($('studentSearch').value);
+    const container = $('studentList');
+    container.innerHTML = '';
+
+    if(list.length === 0){
+      if(students.length === 0 && !$('studentSearch').value.trim()){
+        container.innerHTML = `
+          <div class="empty-note">
+            কোনো শিক্ষার্থীর তথ্য নেই। · No student records yet.<br><br>
+            <button class="btn-secondary" id="loadSeedBtn">৪৩ জনের পুরাতন তালিকা লোড করুন (একবার) · Load the original 43-student roster (one-time)</button>
+          </div>`;
+        const seedBtn = $('loadSeedBtn');
+        if(seedBtn){
+          seedBtn.addEventListener('click', async () => {
+            if(!confirm('আপনার অ্যাকাউন্টে পুরাতন ৪৩ জন শিক্ষার্থীর তালিকা যোগ করতে চান? · Load the original 43-student roster into your account?')) return;
+            students = JSON.parse(JSON.stringify(SEED_STUDENTS));
+            await persistStudents();
+            renderStudentList();
+          });
+        }
+      } else {
+        container.innerHTML = '<div class="empty-note">কোনো শিক্ষার্থী পাওয়া যায়নি। · No matching student found.</div>';
+      }
+    }
+
+    list.forEach(s => {
+      const key = studentKey(s);
+      const isOpen = expandedKey === key;
+      const row = document.createElement('div');
+      row.className = 'student-row' + (isOpen ? ' expanded' : '');
+      row.innerHTML = `
+        <div class="sr-main" data-key="${escapeHtml(key)}">
+          <div class="sr-id">
+            <span class="sr-roll">${escapeHtml(s.boardRoll || '—')}</span>
+            <span class="sr-adm">${escapeHtml(s.admissionRoll || '')}</span>
+          </div>
+          <div class="sr-name">${s.name ? escapeHtml(s.name) : '<i>নাম যুক্ত করা হয়নি</i>'}</div>
+          <div class="sr-contacts">
+            <span>📞 ${escapeHtml(s.phone || '—')}</span>
+            <span>গার্ডিয়ান: ${escapeHtml(s.guardianPhone || '—')}</span>
+          </div>
+          <div class="sr-tags">
+            <span class="ref-badge">R:${s.refSubjects||0} · S:${s.refSemesters||0}</span>
+            <span class="status-pill ${s.status}">${s.status==='complete' ? 'সম্পন্ন' : 'অসম্পন্ন'}</span>
+          </div>
+        </div>
+        ${isOpen ? renderDetail(s) : ''}
+      `;
+      container.appendChild(row);
+    });
+
+    container.querySelectorAll('.sr-main').forEach(el => {
+      el.addEventListener('click', () => {
+        const key = el.getAttribute('data-key');
+        expandedKey = (expandedKey === key) ? null : key;
+        renderStudentList();
+      });
+    });
+
+    container.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const action = btn.getAttribute('data-action');
+        const key = btn.getAttribute('data-key');
+        if(action === 'toggle') toggleStatus(key);
+        else if(action === 'edit') openEditForm(key);
+        else if(action === 'delete') deleteStudent(key);
+      });
+    });
+
+    renderStats(list);
+  }
+
+  function renderStats(list){
+    const total = list.length;
+    const complete = list.filter(s => s.status === 'complete').length;
+    const referred = list.filter(s => (s.refSubjects||0) > 0).length;
+    $('studentsStats').textContent =
+      `মোট · Total: ${total}  ·  রেফার্ড · Referred: ${referred}  ·  সম্পন্ন · Complete: ${complete}  ·  অসম্পন্ন · Pending: ${total - complete}`;
+  }
+
+  async function toggleStatus(key){
+    const s = students.find(x => studentKey(x) === key);
+    if(!s) return;
+    s.status = (s.status === 'complete') ? 'pending' : 'complete';
+    await persistStudents();
+    renderStudentList();
+  }
+
+  async function deleteStudent(key){
+    if(!confirm('আপনি কি নিশ্চিত এই শিক্ষার্থীর তথ্য মুছে ফেলতে চান? · Delete this student?')) return;
+    students = students.filter(x => studentKey(x) !== key);
+    expandedKey = null;
+    await persistStudents();
+    renderStudentList();
+  }
+
+  function clearForm(){
+    ['f_boardRoll','f_admissionRoll','f_name','f_phone','f_guardianPhone'].forEach(id => $(id).value = '');
+    $('f_refSub').value = 0;
+    $('f_refSem').value = 0;
+    $('f_status').value = 'pending';
+  }
+
+  function openAddForm(){
+    editingKey = null;
+    clearForm();
+    $('formTitle').textContent = 'নতুন শিক্ষার্থী যুক্ত করুন · Add Student';
+    $('studentForm').style.display = 'block';
+    $('studentForm').scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+
+  function openEditForm(key){
+    const s = students.find(x => studentKey(x) === key);
+    if(!s) return;
+    editingKey = key;
+    $('f_boardRoll').value = s.boardRoll || '';
+    $('f_admissionRoll').value = s.admissionRoll || '';
+    $('f_name').value = s.name || '';
+    $('f_phone').value = s.phone || '';
+    $('f_guardianPhone').value = s.guardianPhone || '';
+    $('f_refSub').value = s.refSubjects || 0;
+    $('f_refSem').value = s.refSemesters || 0;
+    $('f_status').value = s.status || 'pending';
+    $('formTitle').textContent = 'তথ্য সম্পাদনা করুন · Edit Student';
+    $('studentForm').style.display = 'block';
+    $('studentForm').scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+
+  function closeForm(){
+    $('studentForm').style.display = 'none';
+    editingKey = null;
+  }
+
+  async function saveStudentForm(){
+    const boardRoll = $('f_boardRoll').value.trim();
+    if(!boardRoll){
+      alert('বোর্ড রোল আবশ্যক · Board Roll is required');
+      return;
+    }
+    let R = parseInt($('f_refSub').value, 10); if(isNaN(R) || R<0) R = 0;
+    let S = parseInt($('f_refSem').value, 10); if(isNaN(S) || S<0) S = 0;
+    if(R === 0) S = 0;
+    if(S > R) S = R;
+
+    const record = {
+      boardRoll,
+      admissionRoll: $('f_admissionRoll').value.trim(),
+      name: $('f_name').value.trim(),
+      phone: $('f_phone').value.trim(),
+      guardianPhone: $('f_guardianPhone').value.trim(),
+      refSubjects: R,
+      refSemesters: S,
+      status: $('f_status').value
+    };
+
+    if(editingKey){
+      const idx = students.findIndex(x => studentKey(x) === editingKey);
+      if(idx > -1) students[idx] = record; else students.push(record);
+    } else {
+      const dupIdx = students.findIndex(x => x.boardRoll === boardRoll);
+      if(dupIdx > -1){
+        if(!confirm('এই বোর্ড রোল আগে থেকেই আছে। তথ্য প্রতিস্থাপন করবেন? · This Board Roll already exists. Overwrite?')) return;
+        students[dupIdx] = record;
+      } else {
+        students.push(record);
+      }
+    }
+
+    expandedKey = studentKey(record);
+    await persistStudents();
+    closeForm();
+    renderStudentList();
+  }
+
+  $('addStudentBtn').addEventListener('click', openAddForm);
+  $('cancelStudentBtn').addEventListener('click', closeForm);
+  $('saveStudentBtn').addEventListener('click', saveStudentForm);
+  $('studentSearch').addEventListener('input', renderStudentList);
+
+  /* ============================================================
+     PDF REPORT — full student list with individual fee breakdown
+  ============================================================ */
+  function buildReportHtml(){
+    const rt = getRates();
+    const today = new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'long', year:'numeric'});
+    const all   = students.slice();
+    const done  = all.filter(s => s.status === 'complete');
+    const pend  = all.filter(s => s.status !== 'complete');
+
+    let grandTotal = 0, grandExam = 0, grandMark = 0, grandCenter = 0, grandPractical = 0, grandQuestion = 0;
+
+    const rows = all.map((s, i) => {
+      const f = computeFees(s.refSubjects||0, s.refSemesters||0, rt);
+      grandTotal     += f.total;
+      grandExam      += f.exam;
+      grandMark      += f.mark;
+      grandCenter    += f.center;
+      grandPractical += f.practical;
+      grandQuestion  += f.question;
+      const cls = s.status === 'complete' ? 'rpt-complete' : 'rpt-pending';
+      const badge = s.status === 'complete'
+        ? '<span class="rpt-status-badge complete">✓ Complete</span>'
+        : '<span class="rpt-status-badge pending">Pending</span>';
+      return `
+        <tr class="${cls}">
+          <td>${i+1}</td>
+          <td>${escapeHtml(s.boardRoll||'—')}</td>
+          <td>${escapeHtml(s.admissionRoll||'—')}</td>
+          <td>${s.name ? escapeHtml(s.name) : '<i style="color:#999">—</i>'}</td>
+          <td>${badge}</td>
+          <td class="num">${escapeHtml(String(s.refSubjects||0))}</td>
+          <td class="num">${escapeHtml(String(s.refSemesters||0))}</td>
+          <td class="num">${fmt(f.exam)}</td>
+          <td class="num">${fmt(f.mark)}</td>
+          <td class="num">${fmt(f.center)}</td>
+          <td class="num">${fmt(f.practical)}</td>
+          <td class="num">${fmt(f.question)}</td>
+          <td class="num" style="font-weight:700">${fmt(f.total)}</td>
+        </tr>`;
+    }).join('');
+
+    const doneTotal = done.reduce((a,s)=>{ const f=computeFees(s.refSubjects||0,s.refSemesters||0,rt); return a+f.total; },0);
+
+    return `
+      <div class="rpt-head">
+        <p class="rpt-inst">${escapeHtml(INSTITUTION_NAME)}</p>
+        <p class="rpt-dept">${escapeHtml(INSTITUTION_DEPT)}</p>
+        <span class="rpt-doc-title">Form Fill-up Fee Report — All Students</span>
+      </div>
+      <div class="rpt-meta">
+        <span>Date: ${today}</span>
+        <span>Total Students: ${all.length}</span>
+        <span>Complete: ${done.length} &nbsp;|&nbsp; Pending: ${pend.length}</span>
+      </div>
+
+      <div class="rpt-table-wrap">
+      <table class="rpt-table">
+        <colgroup>
+          <col class="c-sl">
+          <col class="c-broll">
+          <col class="c-aroll">
+          <col class="c-name">
+          <col class="c-stat">
+          <col class="c-rsub">
+          <col class="c-rsem">
+          <col class="c-fee">
+          <col class="c-fee">
+          <col class="c-fee">
+          <col class="c-fee">
+          <col class="c-fee">
+          <col class="c-fee">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Board Roll</th>
+            <th>Adm. Roll</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th class="num">R.Sub</th>
+            <th class="num">R.Sem</th>
+            <th class="num">Exam</th>
+            <th class="num">Mark</th>
+            <th class="num">Center</th>
+            <th class="num">Practical</th>
+            <th class="num">Question</th>
+            <th class="num">Total</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+        <tfoot>
+          <tr>
+            <td colspan="7">সর্বমোট · Grand Total (${all.length} students)</td>
+            <td class="num">${fmt(grandExam)}</td>
+            <td class="num">${fmt(grandMark)}</td>
+            <td class="num">${fmt(grandCenter)}</td>
+            <td class="num">${fmt(grandPractical)}</td>
+            <td class="num">${fmt(grandQuestion)}</td>
+            <td class="num">${fmt(grandTotal)}</td>
+          </tr>
+        </tfoot>
+      </table>
+      </div>
+
+      <div class="rpt-summary">
+        <div class="rpt-sumcard">
+          <div class="rpt-sumcard-label">Total Students</div>
+          <div class="rpt-sumcard-val">${all.length}</div>
+        </div>
+        <div class="rpt-sumcard" style="border-color:var(--green-deep)">
+          <div class="rpt-sumcard-label">Completed</div>
+          <div class="rpt-sumcard-val" style="color:var(--green-deep)">${done.length}</div>
+        </div>
+        <div class="rpt-sumcard" style="border-color:#D97706">
+          <div class="rpt-sumcard-label">Pending</div>
+          <div class="rpt-sumcard-val" style="color:#D97706">${pend.length}</div>
+        </div>
+        <div class="rpt-sumcard" style="border-color:var(--green-deep)">
+          <div class="rpt-sumcard-label">Collected (Complete)</div>
+          <div class="rpt-sumcard-val" style="color:var(--green-deep);font-size:14px">${fmt(doneTotal)}</div>
+        </div>
+        <div class="rpt-sumcard grand">
+          <div class="rpt-sumcard-label">Grand Total (All)</div>
+          <div class="rpt-sumcard-val" style="font-size:14px">${fmt(grandTotal)}</div>
+        </div>
+      </div>
+
+      <div class="inv-note" style="margin-top:18px">
+        Generated on ${today}. Amounts are based on the fee rates configured in the Calculator tab.
+        Row shading: <span style="background:#F0FAF5;padding:1px 6px;border-radius:3px">green = Complete</span>
+        &nbsp;<span style="background:#FFFBF5;padding:1px 6px;border-radius:3px">yellow = Pending</span>.
+      </div>
+    `;
+  }
+
+  function openReport(){
+    if(students.length === 0){
+      alert('কোনো শিক্ষার্থীর তথ্য নেই · No student records to generate a report.');
+      return;
+    }
+    $('reportSheet').innerHTML = buildReportHtml();
+    $('reportOverlay').classList.add('open');
+  }
+  function closeReport(){ $('reportOverlay').classList.remove('open'); }
+
+  $('reportBtn').addEventListener('click', openReport);
+  $('reportCloseBtn').addEventListener('click', closeReport);
+  $('reportPrintBtn').addEventListener('click', () => window.print());
+
+  /* ============================================================
+     BULK ADD — paste-in CSV/tab import
+  ============================================================ */
+  function parseBulkText(raw){
+    const existingRolls = new Set(students.map(s => (s.boardRoll||'').trim().toLowerCase()));
+    const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const parsed = [];
+    const skipped = [];
+    const errors = [];
+
+    lines.forEach((line, idx) => {
+      // support comma or tab separator
+      const sep = line.includes('\t') ? '\t' : ',';
+      const parts = line.split(sep).map(p => p.trim());
+      const boardRoll = parts[0] || '';
+
+      if(!boardRoll){
+        errors.push(`লাইন ${idx+1}: বোর্ড রোল নেই · Line ${idx+1}: missing board roll`);
+        return;
+      }
+      if(existingRolls.has(boardRoll.toLowerCase())){
+        skipped.push(boardRoll);
+        return;
+      }
+
+      const refSub = Math.max(0, parseInt(parts[5]||'0', 10) || 0);
+      const refSem = Math.max(0, parseInt(parts[6]||'0', 10) || 0);
+      parsed.push({
+        boardRoll,
+        admissionRoll: parts[1] || '',
+        name:          parts[2] || '',
+        phone:         parts[3] || '',
+        guardianPhone: parts[4] || '',
+        refSubjects:   refSub,
+        refSemesters:  refSem,
+        status:        'pending'
+      });
+      existingRolls.add(boardRoll.toLowerCase());
+    });
+
+    return { parsed, skipped, errors };
+  }
+
+  function updateBulkPreview(){
+    const raw = $('bulkTextarea').value;
+    if(!raw.trim()){
+      $('bulkPreview').textContent = '';
+      $('bulkImportBtn').disabled = true;
+      return;
+    }
+    const { parsed, skipped, errors } = parseBulkText(raw);
+    const preview = $('bulkPreview');
+    const parts = [];
+    if(parsed.length) parts.push(`✓ ${parsed.length} জন যুক্ত হবে · will be added`);
+    if(skipped.length) parts.push(`⚠ ${skipped.length} টি বোর্ড রোল ইতিমধ্যে আছে, বাদ যাবে · already exist, will be skipped`);
+    if(errors.length) parts.push(`✗ ${errors.length} লাইনে ত্রুটি · lines with errors`);
+    preview.textContent = parts.join(' | ');
+    preview.className = 'bulk-preview' + (errors.length ? ' warn' : '');
+    $('bulkImportBtn').disabled = parsed.length === 0;
+  }
+
+  async function doBulkImport(){
+    const raw = $('bulkTextarea').value;
+    const { parsed, skipped } = parseBulkText(raw);
+    if(parsed.length === 0) return;
+
+    $('bulkImportBtn').disabled = true;
+    $('bulkImportBtn').textContent = 'সংরক্ষণ হচ্ছে... · Saving...';
+
+    students.push(...parsed);
+    await persistStudents();
+    renderStudentList();
+
+    $('bulkOverlay').classList.remove('open');
+    $('bulkTextarea').value = '';
+    $('bulkPreview').textContent = '';
+    $('bulkImportBtn').disabled = true;
+    $('bulkImportBtn').textContent = '⊕ ইম্পোর্ট করুন · Import';
+
+    alert(`✓ ${parsed.length} জন শিক্ষার্থী যুক্ত হয়েছে${skipped.length ? ` (${skipped.length} টি বাদ দেওয়া হয়েছে)` : ''} · ${parsed.length} student(s) added${skipped.length ? ` (${skipped.length} skipped)` : ''}.`);
+  }
+
+  $('bulkAddBtn').addEventListener('click', () => {
+    $('bulkTextarea').value = '';
+    $('bulkPreview').textContent = '';
+    $('bulkImportBtn').disabled = true;
+    $('bulkOverlay').classList.add('open');
+    setTimeout(() => $('bulkTextarea').focus(), 50);
+  });
+  $('bulkCancelBtn').addEventListener('click', () => $('bulkOverlay').classList.remove('open'));
+  $('bulkTextarea').addEventListener('input', updateBulkPreview);
+  $('bulkImportBtn').addEventListener('click', doBulkImport);
+
+  /* ============================================================
+     PDF INVOICE — total transaction summary
+     Board share   = Σ Exam Fee + Σ Marksheet Fee
+     Institution share = Σ Center Fee + Σ Practical Fee + Σ Question Fee
+  ============================================================ */
+  const INSTITUTION_NAME = 'Model Institute Of Science and Technology';
+  const INSTITUTION_DEPT = 'Department of Computer Science and Technology';
+
+  function computeInvoiceTotals(list){
+    const rt = getRates();
+    const totals = {exam:0, mark:0, center:0, practical:0, question:0, total:0, count:list.length};
+    list.forEach(s => {
+      const f = computeFees(s.refSubjects||0, s.refSemesters||0, rt);
+      totals.exam += f.exam;
+      totals.mark += f.mark;
+      totals.center += f.center;
+      totals.practical += f.practical;
+      totals.question += f.question;
+      totals.total += f.total;
+    });
+    totals.board = totals.exam + totals.mark;
+    totals.institution = totals.center + totals.practical + totals.question;
+    return totals;
+  }
+
+  function invoiceNumber(){
+    const d = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    return `INV-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`;
+  }
+
+  function buildInvoiceHtml(list){
+    const t = computeInvoiceTotals(list);
+    const today = new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'long', year:'numeric'});
+    const pct = (part, whole) => whole ? ((part/whole)*100).toFixed(1) : '0.0';
+
+    const rows = list.map((s, i) => {
+      const rt = getRates();
+      const f = computeFees(s.refSubjects||0, s.refSemesters||0, rt);
+      return `
+        <tr>
+          <td>${i+1}</td>
+          <td>${escapeHtml(s.boardRoll || '—')}</td>
+          <td>${s.name ? escapeHtml(s.name) : '—'}</td>
+          <td class="num">${fmt(f.exam)}</td>
+          <td class="num">${fmt(f.mark)}</td>
+          <td class="num">${fmt(f.center)}</td>
+          <td class="num">${fmt(f.practical)}</td>
+          <td class="num">${fmt(f.question)}</td>
+          <td class="num">${fmt(f.total)}</td>
+        </tr>`;
+    }).join('');
+
+    return `
+      <div class="inv-head">
+        <p class="inv-inst-name">${escapeHtml(INSTITUTION_NAME)}</p>
+        <p class="inv-dept">${escapeHtml(INSTITUTION_DEPT)}</p>
+        <span class="inv-doc-title">Transaction Summary · Fee Collection Invoice</span>
+      </div>
+
+      <div class="inv-meta">
+        <span>Invoice No: ${invoiceNumber()}</span>
+        <span>Date: ${today}</span>
+        <span>Students Covered (Completed Transactions): ${t.count}</span>
+      </div>
+
+      <div class="inv-section-title">ফি খাতভিত্তিক সংগ্রহ · Collection by Fee Head</div>
+      <table class="inv-table">
+        <thead>
+          <tr>
+            <th>Fee Head</th>
+            <th class="num">Total Collected (৳)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>পরীক্ষার ফি · Exam Fee</td><td class="num">${fmt(t.exam)}</td></tr>
+          <tr><td>মার্কশীট ফি · Marksheet Fee</td><td class="num">${fmt(t.mark)}</td></tr>
+          <tr><td>সেন্টার ফি · Center Fee</td><td class="num">${fmt(t.center)}</td></tr>
+          <tr><td>প্র্যাকটিকাল ফি · Practical Fee</td><td class="num">${fmt(t.practical)}</td></tr>
+          <tr><td>প্রশ্নপত্র ফি · Question Fee</td><td class="num">${fmt(t.question)}</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td>Grand Total</td><td class="num">${fmt(t.total)}</td></tr>
+        </tfoot>
+      </table>
+
+      <div class="inv-section-title">বণ্টন · Fund Distribution</div>
+      <div class="inv-split">
+        <div class="inv-split-card board">
+          <div class="inv-split-label">Board's Share</div>
+          <div class="inv-split-amount">${fmt(t.board)}</div>
+          <div class="inv-split-sub">Exam Fee (${fmt(t.exam)}) + Marksheet Fee (${fmt(t.mark)}) — ${pct(t.board, t.total)}% of total</div>
+        </div>
+        <div class="inv-split-card inst">
+          <div class="inv-split-label">Institution's Share</div>
+          <div class="inv-split-amount">${fmt(t.institution)}</div>
+          <div class="inv-split-sub">Center (${fmt(t.center)}) + Practical (${fmt(t.practical)}) + Question (${fmt(t.question)}) — ${pct(t.institution, t.total)}% of total</div>
+        </div>
+      </div>
+
+      <div class="inv-grand">
+        <span class="inv-grand-label">সর্বমোট সংগ্রহ · Grand Total Collection</span>
+        <span class="inv-grand-amount">৳${Math.round(t.total).toLocaleString('en-IN')}</span>
+      </div>
+
+      <div class="inv-section-title">শিক্ষার্থীভিত্তিক বিবরণ · Per-Student Breakdown</div>
+      <table class="inv-table">
+        <thead>
+          <tr>
+            <th>#</th><th>Board Roll</th><th>Name</th>
+            <th class="num">Exam</th><th class="num">Mark</th><th class="num">Center</th>
+            <th class="num">Practical</th><th class="num">Question</th><th class="num">Total</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+
+      <div class="inv-foot">
+        <div class="inv-sign"><div class="inv-sign-line">Prepared By</div></div>
+        <div class="inv-sign"><div class="inv-sign-line">Verified By (Accounts)</div></div>
+        <div class="inv-sign"><div class="inv-sign-line">Authorized Signature</div></div>
+      </div>
+
+      <div class="inv-note">
+        This invoice summarizes form fill-up fee transactions for students marked "Complete" (সম্পন্ন) as of ${today}. Pending transactions are excluded.
+        Board's share covers Exam and Marksheet fees; the Institution's share covers Center, Practical, and Question fees.
+        Figures are based on the fee rates configured in the Calculator tab at the time of generation.
+      </div>
+    `;
+  }
+
+  function openInvoice(){
+    const list = students.filter(s => s.status === 'complete');
+    if(list.length === 0){
+      alert('সম্পন্ন (Complete) স্ট্যাটাসের কোনো শিক্ষার্থী নেই · No students with "Complete" status found. The invoice only includes completed (paid) transactions.');
+      return;
+    }
+    $('invoiceSheet').innerHTML = buildInvoiceHtml(list);
+    $('invoiceOverlay').classList.add('open');
+  }
+
+  function closeInvoice(){
+    $('invoiceOverlay').classList.remove('open');
+  }
+
+  $('invoiceBtn').addEventListener('click', openInvoice);
+  $('invoiceCloseBtn').addEventListener('click', closeInvoice);
+  $('invoicePrintBtn').addEventListener('click', () => window.print());
+
+  /* ============================================================
+     INIT — load this signed-in user's data from Supabase
+  ============================================================ */
+  async function init(){
+    appDataCache = null;
+    await fetchAppDataRow();
+    backendActive = true;
+    updateBackendStatus();
+
+    const savedRatesRaw = await storageGet('ffc_rates');
+    if(savedRatesRaw){
+      try{ setRateInputs(JSON.parse(savedRatesRaw)); }
+      catch(e){ setRateInputs(DEFAULT_RATES); }
+    } else {
+      setRateInputs(DEFAULT_RATES);
+      await persistRates();
+    }
+
+    const savedStudentsRaw = await storageGet('ffc_students');
+    if(savedStudentsRaw){
+      try{
+        const parsed = JSON.parse(savedStudentsRaw);
+        students = Array.isArray(parsed) ? parsed : [];
+      }catch(e){
+        students = [];
+      }
+    } else {
+      students = [];
+    }
+
+    recalc(false);
+    renderStudentList();
+  }
+
+  /* ============================================================
+     AUTH — Supabase email/password sign in & sign up
+  ============================================================ */
+  let authMode = 'signin';
+
+  function setAuthMode(mode){
+    authMode = mode;
+    $('authTabSignin').classList.toggle('active', mode === 'signin');
+    $('authTabSignup').classList.toggle('active', mode === 'signup');
+    $('authSubmitBtn').textContent = (mode === 'signin') ? 'সাইন ইন করুন · Sign In' : 'অ্যাকাউন্ট তৈরি করুন · Create Account';
+    $('authPassword').setAttribute('autocomplete', (mode === 'signin') ? 'current-password' : 'new-password');
+    setAuthMsg('', '');
+  }
+
+  function setAuthMsg(msg, kind){
+    const el = $('authMsg');
+    el.textContent = msg || '';
+    el.className = 'auth-msg' + (kind ? (' ' + kind) : '');
+  }
+
+  async function handleAuthSubmit(){
+    const email = $('authEmail').value.trim();
+    const password = $('authPassword').value;
+    if(!email || !password){
+      setAuthMsg('ইমেইল ও পাসওয়ার্ড আবশ্যক · Email and password are required.', 'error');
+      return;
+    }
+    if(password.length < 6){
+      setAuthMsg('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে · Password must be at least 6 characters.', 'error');
+      return;
+    }
+    const btn = $('authSubmitBtn');
+    btn.disabled = true;
+    setAuthMsg('অপেক্ষা করুন... · Please wait...', '');
+
+    try{
+      if(authMode === 'signin'){
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if(error){ setAuthMsg(error.message, 'error'); btn.disabled = false; return; }
+        await onSignedIn(data.user);
+      } else {
+        const { data, error } = await supabaseClient.auth.signUp({ email, password });
+        if(error){ setAuthMsg(error.message, 'error'); btn.disabled = false; return; }
+        if(data.session){
+          await onSignedIn(data.user);
+        } else {
+          setAuthMsg('অ্যাকাউন্ট তৈরি হয়েছে। ইমেইল চেক করে কনফার্ম করুন, তারপর সাইন ইন করুন। · Account created. Check your email to confirm it, then sign in.', 'ok');
+          setAuthMode('signin');
+          btn.disabled = false;
+        }
+      }
+    }catch(e){
+      setAuthMsg('কিছু একটা ভুল হয়েছে · Something went wrong: ' + e.message, 'error');
+      btn.disabled = false;
+    }
+  }
+
+  async function onSignedIn(user){
+    currentUser = user;
+    $('authOverlay').classList.add('hidden');
+    $('appRoot').style.display = 'block';
+    $('authUserLabel').textContent = `সাইন ইন · Signed in as: ${user.email}`;
+    $('authSubmitBtn').disabled = false;
+    setAuthMsg('', '');
+    await init();
+  }
+
+  async function handleLogout(){
+    await supabaseClient.auth.signOut();
+    currentUser = null;
+    appDataCache = null;
+    students = [];
+    backendActive = false;
+    $('appRoot').style.display = 'none';
+    $('authOverlay').classList.remove('hidden');
+    $('authEmail').value = '';
+    $('authPassword').value = '';
+    setAuthMode('signin');
+  }
+
+  $('authTabSignin').addEventListener('click', () => setAuthMode('signin'));
+  $('authTabSignup').addEventListener('click', () => setAuthMode('signup'));
+  $('authSubmitBtn').addEventListener('click', handleAuthSubmit);
+  $('authPassword').addEventListener('keydown', (e) => { if(e.key === 'Enter') handleAuthSubmit(); });
+  $('authEmail').addEventListener('keydown', (e) => { if(e.key === 'Enter') $('authPassword').focus(); });
+  $('logoutBtn').addEventListener('click', handleLogout);
+
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    if(event === 'SIGNED_OUT'){
+      currentUser = null;
+    } else if(session && session.user){
+      currentUser = session.user;
+    }
+  });
+
+  /* ============================================================
+     BOOTSTRAP — resume an existing session if one is present
+  ============================================================ */
+  (async function bootstrap(){
+    const { data } = await supabaseClient.auth.getSession();
+    if(data && data.session && data.session.user){
+      await onSignedIn(data.session.user);
+    }
+    // else: the auth overlay stays visible, waiting for sign in/up
+  })();
+</script>
+</body>
+</html>
