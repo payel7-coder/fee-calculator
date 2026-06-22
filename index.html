@@ -1680,24 +1680,7 @@
     container.innerHTML = '';
 
     if(list.length === 0){
-      if(students.length === 0 && !$('studentSearch').value.trim()){
-        container.innerHTML = `
-          <div class="empty-note">
-            কোনো শিক্ষার্থীর তথ্য নেই। · No student records yet.<br><br>
-            <button class="btn-secondary" id="loadSeedBtn">৪৩ জনের পুরাতন তালিকা লোড করুন (একবার) · Load the original 43-student roster (one-time)</button>
-          </div>`;
-        const seedBtn = $('loadSeedBtn');
-        if(seedBtn){
-          seedBtn.addEventListener('click', async () => {
-            if(!confirm('আপনার অ্যাকাউন্টে পুরাতন ৪৩ জন শিক্ষার্থীর তালিকা যোগ করতে চান? · Load the original 43-student roster into your account?')) return;
-            students = JSON.parse(JSON.stringify(SEED_STUDENTS));
-            await persistStudents();
-            renderStudentList();
-          });
-        }
-      } else {
-        container.innerHTML = '<div class="empty-note">কোনো শিক্ষার্থী পাওয়া যায়নি। · No matching student found.</div>';
-      }
+      container.innerHTML = '<div class="empty-note">কোনো শিক্ষার্থীর তথ্য নেই। · No student records yet. Click "+ Add Student" to get started.</div>';
     }
 
     list.forEach(s => {
