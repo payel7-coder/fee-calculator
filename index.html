@@ -1015,6 +1015,7 @@
     .inv-note{ display:none !important; }
 
     @page{ size:A4 landscape; margin:10mm; }
+    html.print-portrait @page{ size:A4 portrait; margin:14mm; }
   }
 
   /* ---------- auth (new) ---------- */
@@ -1986,7 +1987,10 @@
 
   $('reportBtn').addEventListener('click', openReport);
   $('reportCloseBtn').addEventListener('click', closeReport);
-  $('reportPrintBtn').addEventListener('click', () => window.print());
+  $('reportPrintBtn').addEventListener('click', () => {
+    document.documentElement.classList.remove('print-portrait');
+    window.print();
+  });
 
   /* ============================================================
      BULK ADD — paste-in CSV/tab import
@@ -2228,7 +2232,11 @@
 
   $('invoiceBtn').addEventListener('click', openInvoice);
   $('invoiceCloseBtn').addEventListener('click', closeInvoice);
-  $('invoicePrintBtn').addEventListener('click', () => window.print());
+  $('invoicePrintBtn').addEventListener('click', () => {
+    document.documentElement.classList.add('print-portrait');
+    window.print();
+    document.documentElement.classList.remove('print-portrait');
+  });
 
   /* ============================================================
      INIT — load this signed-in user's data from Supabase
