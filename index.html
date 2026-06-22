@@ -985,21 +985,21 @@
 
     /* Report-specific print fixes */
     .rpt-table-wrap{ overflow:visible !important; }
-    table.rpt-table{ font-size:8.5px; table-layout:fixed; width:100%; }
-    table.rpt-table th{ font-size:7.5px; padding:3px 4px; white-space:normal; letter-spacing:0; }
-    table.rpt-table td{ padding:3px 4px; white-space:normal; word-break:break-word; }
-    table.rpt-table col.c-sl   { width:20px; }
-    table.rpt-table col.c-broll{ width:58px; }
-    table.rpt-table col.c-aroll{ width:44px; }
+    table.rpt-table{ font-size:7.5px; table-layout:fixed; width:100%; }
+    table.rpt-table th{ font-size:6.5px; padding:2px 3px; white-space:normal; letter-spacing:0; }
+    table.rpt-table td{ padding:2px 3px; white-space:normal; word-break:break-word; }
+    table.rpt-table col.c-sl   { width:16px; }
+    table.rpt-table col.c-broll{ width:48px; }
+    table.rpt-table col.c-aroll{ width:38px; }
     table.rpt-table col.c-name { width:auto; }
-    table.rpt-table col.c-stat { width:52px; }
-    table.rpt-table col.c-rsub { width:30px; }
-    table.rpt-table col.c-rsem { width:30px; }
-    table.rpt-table col.c-fee  { width:48px; }
-    .rpt-status-badge{ font-size:7px; padding:1px 4px; }
+    table.rpt-table col.c-stat { width:44px; }
+    table.rpt-table col.c-rsub { width:24px; }
+    table.rpt-table col.c-rsem { width:24px; }
+    table.rpt-table col.c-fee  { width:40px; }
+    .rpt-status-badge{ font-size:6px; padding:1px 3px; }
     .rpt-summary{ grid-template-columns:repeat(5,1fr); }
-    .rpt-sumcard{ padding:8px; }
-    .rpt-sumcard-val{ font-size:13px; }
+    .rpt-sumcard{ padding:6px; }
+    .rpt-sumcard-val{ font-size:12px; }
 
     /* Keep table header repeated on every printed page */
     table.rpt-table thead{ display:table-header-group; }
@@ -1014,8 +1014,8 @@
     .inv-foot{ display:none !important; }
     .inv-note{ display:none !important; }
 
-    @page{ size:A4 landscape; margin:10mm; }
-    html.print-portrait @page{ size:A4 portrait; margin:14mm; }
+    @page{ margin:10mm; }
+    html.print-portrait @page{ margin:14mm; }
   }
 
   /* ---------- auth (new) ---------- */
