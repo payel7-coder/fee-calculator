@@ -2205,11 +2205,11 @@
 
   function buildInvoiceHtml(list){
     const t = computeInvoiceTotals(list);
+    const rt = getRates();
     const today = new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'long', year:'numeric'});
     const pct = (part, whole) => whole ? ((part/whole)*100).toFixed(1) : '0.0';
 
     const rows = list.map((s, i) => {
-      const rt = getRates();
       const f = computeFees(s.refSubjects||0, s.refSemesters||0, rt, s.lateDays||0);
       return `
         <tr>
@@ -2242,27 +2242,50 @@
         <span>Students Covered (Completed Transactions): ${t.count}</span>
       </div>
 
+      <div class="inv-section-title">ফি হার · Applicable Fee Rates</div>
+      <table class="inv-table">
+        <thead>
+          <tr>
+            <th>Fee Head</th>
+            <th class="num">Rate (৳)</th>
+            <th>Basis</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Exam Fee Regular</td><td class="num">${fmt(rt.examBase)}</td><td>flat, per student</td></tr>
+          <tr><td>Referred Exam Fee</td><td class="num">${fmt(rt.refSubFee)}</td><td>per referred subject</td></tr>
+          <tr><td>Marksheet Fee Regular</td><td class="num">${fmt(rt.markBase)}</td><td>flat, per student</td></tr>
+          <tr><td>Marksheet Fee Referred</td><td class="num">${fmt(rt.refMarkFee)}</td><td>per referred semester</td></tr>
+          <tr><td>Centre Fee Regular</td><td class="num">${fmt(rt.centerBase)}</td><td>flat, per student</td></tr>
+          <tr><td>Centre Fee Referred</td><td class="num">${fmt(rt.refCenterFee)}</td><td>per referred semester</td></tr>
+          <tr><td>Practical Fee</td><td class="num">${fmt(rt.practicalRate)}</td><td>per subject × ${rt.practicalCount} subjects</td></tr>
+          <tr><td>Question Fee</td><td class="num">${fmt(rt.questionFee)}</td><td>flat, per student</td></tr>
+          <tr><td>Delay Fee</td><td class="num">${fmt(rt.delayFeePerDay)}</td><td>per day late${rt.delayGraceDays ? ` (first ${rt.delayGraceDays} days free)` : ''}</td></tr>
+        </tbody>
+      </table>
+
       <div class="inv-section-title">ফি খাতভিত্তিক সংগ্রহ · Collection by Fee Head</div>
       <table class="inv-table">
         <thead>
           <tr>
             <th>Fee Head</th>
+            <th class="num">Rate (৳)</th>
             <th class="num">Total Collected (৳)</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td>পরীক্ষার ফি (নিয়মিত) · Exam Fee Regular</td><td class="num">${fmt(t.examRegular)}</td></tr>
-          <tr><td>মার্কশীট ফি (নিয়মিত) · Marksheet Fee Regular</td><td class="num">${fmt(t.markRegular)}</td></tr>
-          <tr><td>মার্কশীট ফি (রেফার্ড) · Marksheet Fee Referred</td><td class="num">${fmt(t.markReferred)}</td></tr>
-          <tr><td>প্রশ্নপত্র ফি · Question Fee</td><td class="num">${fmt(t.question)}</td></tr>
-          <tr><td>রেফার্ড পরীক্ষার ফি · Referred Exam Fee</td><td class="num">${fmt(t.examReferred)}</td></tr>
-          ${t.delay > 0 ? `<tr><td>বিলম্ব ফি · Delay Fee</td><td class="num">${fmt(t.delay)}</td></tr>` : ''}
-          <tr><td>সেন্টার ফি (নিয়মিত) · Centre Fee Regular</td><td class="num">${fmt(t.centerRegular)}</td></tr>
-          <tr><td>সেন্টার ফি (রেফার্ড) · Centre Fee Referred</td><td class="num">${fmt(t.centerReferred)}</td></tr>
-          <tr><td>প্র্যাকটিকাল ফি · Practical Fee</td><td class="num">${fmt(t.practical)}</td></tr>
+          <tr><td>পরীক্ষার ফি (নিয়মিত) · Exam Fee Regular</td><td class="num">${fmt(rt.examBase)}</td><td class="num">${fmt(t.examRegular)}</td></tr>
+          <tr><td>মার্কশীট ফি (নিয়মিত) · Marksheet Fee Regular</td><td class="num">${fmt(rt.markBase)}</td><td class="num">${fmt(t.markRegular)}</td></tr>
+          <tr><td>মার্কশীট ফি (রেফার্ড) · Marksheet Fee Referred</td><td class="num">${fmt(rt.refMarkFee)}/sem</td><td class="num">${fmt(t.markReferred)}</td></tr>
+          <tr><td>প্রশ্নপত্র ফি · Question Fee</td><td class="num">${fmt(rt.questionFee)}</td><td class="num">${fmt(t.question)}</td></tr>
+          <tr><td>রেফার্ড পরীক্ষার ফি · Referred Exam Fee</td><td class="num">${fmt(rt.refSubFee)}/sub</td><td class="num">${fmt(t.examReferred)}</td></tr>
+          ${t.delay > 0 ? `<tr><td>বিলম্ব ফি · Delay Fee</td><td class="num">${fmt(rt.delayFeePerDay)}/day</td><td class="num">${fmt(t.delay)}</td></tr>` : ''}
+          <tr><td>সেন্টার ফি (নিয়মিত) · Centre Fee Regular</td><td class="num">${fmt(rt.centerBase)}</td><td class="num">${fmt(t.centerRegular)}</td></tr>
+          <tr><td>সেন্টার ফি (রেফার্ড) · Centre Fee Referred</td><td class="num">${fmt(rt.refCenterFee)}/sem</td><td class="num">${fmt(t.centerReferred)}</td></tr>
+          <tr><td>প্র্যাকটিকাল ফি · Practical Fee</td><td class="num">${fmt(rt.practicalRate)}×${rt.practicalCount}</td><td class="num">${fmt(t.practical)}</td></tr>
         </tbody>
         <tfoot>
-          <tr><td>Grand Total</td><td class="num">${fmt(t.total)}</td></tr>
+          <tr><td colspan="2">Grand Total</td><td class="num">${fmt(t.total)}</td></tr>
         </tfoot>
       </table>
 
