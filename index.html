@@ -1006,6 +1006,12 @@
     table.rpt-table tfoot{ display:none !important; }
     table.inv-table tfoot{ display:none !important; }
 
+    /* Per-student breakdown table (invoice) — shrink to fit printed page */
+    .invoice-overlay div[style*="overflow-x:auto"]{ overflow:visible !important; width:auto !important; }
+    table.inv-table[style*="table-layout:fixed"]{ font-size:7.5px !important; min-width:0 !important; }
+    table.inv-table[style*="table-layout:fixed"] th,
+    table.inv-table[style*="table-layout:fixed"] td{ padding:3px 2px !important; }
+
     /* Avoid row splitting across pages */
     table.rpt-table tr{ page-break-inside:avoid; }
 
@@ -1208,6 +1214,17 @@
           <div class="hint" id="semHint"></div>
         </div>
 
+        <div class="field">
+          <label class="field-label" for="lateDays">বিলম্ব ফি — বিলম্বিত দিনের সংখ্যা</label>
+          <span class="en-label">Delay Fee — number of days late</span>
+          <div class="stepper">
+            <button type="button" id="lateMinus" aria-label="কমান">−</button>
+            <input type="number" id="lateDays" value="0" min="0" max="365" inputmode="numeric">
+            <button type="button" id="latePlus" aria-label="বাড়ান">+</button>
+          </div>
+          <div class="hint" id="lateHint"></div>
+        </div>
+
         <details class="adv">
           <summary>ফি হার সম্পাদনা করুন (ঐচ্ছিক) — Edit fee rates</summary>
           <div class="adv-grid">
@@ -1220,6 +1237,8 @@
             <div class="adv-field"><label>Practical Fee (per subject)</label><input type="number" id="r_practicalRate" value="40"></div>
             <div class="adv-field"><label>No. of Practical Subjects</label><input type="number" id="r_practicalCount" value="6"></div>
             <div class="adv-field"><label>Question Fee</label><input type="number" id="r_questionFee" value="50"></div>
+            <div class="adv-field"><label>Delay Fee (per day)</label><input type="number" id="r_delayFeePerDay" value="20"></div>
+            <div class="adv-field"><label>Grace Days (no fee)</label><input type="number" id="r_delayGraceDays" value="0"></div>
           </div>
           <button type="button" class="adv-reset" id="resetRates">ডিফল্ট হারে ফিরে যান · Reset to default</button>
         </details>
@@ -1272,6 +1291,14 @@
             <div class="li-formula" id="f_question"></div>
           </div>
           <div class="li-value" id="v_question">৳0</div>
+        </div>
+
+        <div class="line-item" id="li_delay">
+          <div>
+            <div class="li-label">বিলম্ব ফি · Delay Fee</div>
+            <div class="li-formula" id="f_delay"></div>
+          </div>
+          <div class="li-value" id="v_delay">৳0</div>
         </div>
 
         <div class="stamp-wrap">
@@ -1346,6 +1373,10 @@
           <label>রেফার্ড সেমিস্টার সংখ্যা · Referred Semesters</label>
           <input type="number" id="f_refSem" value="0" min="0">
         </div>
+        <div class="form-field">
+          <label>বিলম্বিত দিনের সংখ্যা · Days Late</label>
+          <input type="number" id="f_lateDays" value="0" min="0">
+        </div>
       </div>
       <div class="form-actions">
         <button class="btn-primary" id="saveStudentBtn">সংরক্ষণ করুন · Save</button>
@@ -1386,9 +1417,9 @@
     <p class="bulk-title">⊞ বাল্ক শিক্ষার্থী যুক্ত করুন · Bulk Add Students</p>
     <div class="bulk-hint">
       প্রতি লাইনে একজন শিক্ষার্থীর তথ্য দিন · One student per line, fields separated by comma or tab:<br>
-      <code>boardRoll, admissionRoll, name, phone, guardianPhone, refSubjects, refSemesters</code><br><br>
+      <code>boardRoll, admissionRoll, name, phone, guardianPhone, refSubjects, refSemesters, lateDays</code><br><br>
       উদাহরণ · Example:<br>
-      <code>767099, 7-044, Rahim Hossain, 01700000001, 01800000001, 2, 1</code><br><br>
+      <code>767099, 7-044, Rahim Hossain, 01700000001, 01800000001, 2, 1, 5</code><br><br>
       ⚠ শুধুমাত্র বোর্ড রোল আবশ্যক · Only Board Roll is required. Leave other fields blank if unknown.
       Duplicate board rolls (already in your list) will be skipped.
     </div>
@@ -1413,7 +1444,8 @@
     markBase:80, refMarkFee:80,
     centerBase:600, refCenterFee:250,
     practicalRate:40, practicalCount:6,
-    questionFee:50
+    questionFee:50,
+    delayFeePerDay:20, delayGraceDays:0
   };
 
   const SEED_STUDENTS = [{"boardRoll": "667094", "admissionRoll": "7-001", "name": "", "phone": "", "guardianPhone": "", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "690511", "admissionRoll": "7-002", "name": "Partha Sarker", "phone": "01608392690", "guardianPhone": "01612328125", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767015", "admissionRoll": "7-003", "name": "Tanvir Ahmed Jisan", "phone": "01310430716", "guardianPhone": "01832557959", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767017", "admissionRoll": "7-004", "name": "Tauhidul Islam Tayyef", "phone": "01534819229", "guardianPhone": "01713042213", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767018", "admissionRoll": "7-005", "name": "Al Saad Hossain Rafid", "phone": "01601701840", "guardianPhone": "01929443309", "refSubjects": 2, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767019", "admissionRoll": "7-006", "name": "Shawon", "phone": "01609812886", "guardianPhone": "01732174937", "refSubjects": 3, "refSemesters": 3, "status": "pending"}, {"boardRoll": "767020", "admissionRoll": "7-007", "name": "Md. Mahabub Hasan Durjoy", "phone": "01910000500", "guardianPhone": "01711370827", "refSubjects": 3, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767021", "admissionRoll": "7-008", "name": "Abir Saifullah", "phone": "01715506440", "guardianPhone": "01711396951", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767022", "admissionRoll": "7-009", "name": "Md. Abu Sahid", "phone": "01880033827", "guardianPhone": "01609785165", "refSubjects": 2, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767023", "admissionRoll": "7-010", "name": "Sadnan Sani", "phone": "01960072290", "guardianPhone": "01829260600", "refSubjects": 2, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767025", "admissionRoll": "7-011", "name": "Sanjida Akter", "phone": "", "guardianPhone": "01912487721", "refSubjects": 2, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767026", "admissionRoll": "7-012", "name": "Ensan Ahmad", "phone": "19309390701", "guardianPhone": "01935899042", "refSubjects": 5, "refSemesters": 4, "status": "pending"}, {"boardRoll": "767027", "admissionRoll": "7-013", "name": "Tarequl Islam", "phone": "01613524209", "guardianPhone": "01301822065", "refSubjects": 4, "refSemesters": 3, "status": "pending"}, {"boardRoll": "767028", "admissionRoll": "7-014", "name": "Mujahid Islam", "phone": "01303129515", "guardianPhone": "01745081391", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767029", "admissionRoll": "7-015", "name": "Md. Shanto Sharker", "phone": "01760752922", "guardianPhone": "01933463835", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767030", "admissionRoll": "7-016", "name": "Sumaiya Sharin Shahi", "phone": "01730862010", "guardianPhone": "01727695159", "refSubjects": 3, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767031", "admissionRoll": "7-017", "name": "NibirUddin Mohon", "phone": "01401328182", "guardianPhone": "01723151088", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767032", "admissionRoll": "7-018", "name": "Nafis Iqbal Apon", "phone": "01928023632", "guardianPhone": "01713347597", "refSubjects": 5, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767034", "admissionRoll": "7-019", "name": "Jihad Bhuaya", "phone": "01402875394", "guardianPhone": "01722132207", "refSubjects": 3, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767035", "admissionRoll": "7-020", "name": "Md. Ahnaf Omi", "phone": "01688425213", "guardianPhone": "01937656761", "refSubjects": 4, "refSemesters": 3, "status": "pending"}, {"boardRoll": "767039", "admissionRoll": "7-021", "name": "Habibur Rahman Mridul", "phone": "01729987433", "guardianPhone": "19211716363", "refSubjects": 3, "refSemesters": 3, "status": "pending"}, {"boardRoll": "767040", "admissionRoll": "7-022", "name": "Md. Abdur Rob", "phone": "01685498699", "guardianPhone": "01763650140", "refSubjects": 2, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767042", "admissionRoll": "7-023", "name": "Md. Rasel Miah", "phone": "01730669176", "guardianPhone": "01738341129", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767044", "admissionRoll": "7-024", "name": "Ashraful Islam Anto", "phone": "01959262218", "guardianPhone": "01716965801", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "767045", "admissionRoll": "7-025", "name": "Faysal Rohman Niloy", "phone": "01773648497", "guardianPhone": "01784727035", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767046", "admissionRoll": "7-026", "name": "Siyam Vuiya", "phone": "01736903992", "guardianPhone": "01727330516", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767053", "admissionRoll": "7-027", "name": "Shehojad Ahamed Rafi", "phone": "01700508217", "guardianPhone": "01719889525", "refSubjects": 4, "refSemesters": 3, "status": "pending"}, {"boardRoll": "767056", "admissionRoll": "7-028", "name": "Asif Ar Rahman", "phone": "01312677759", "guardianPhone": "01947391920", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767058", "admissionRoll": "7-029", "name": "Fahim Ahmed Dipu", "phone": "01947782227", "guardianPhone": "01540032334", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "767061", "admissionRoll": "7-030", "name": "Md. Hamid Abid Talukder Tanvir", "phone": "01312738184", "guardianPhone": "01714607861", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "767066", "admissionRoll": "7-031", "name": "Shamima Akther Halima", "phone": "01771717419", "guardianPhone": "01771717419", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767067", "admissionRoll": "7-032", "name": "Sayem Hasan", "phone": "01300926820", "guardianPhone": "01817051153", "refSubjects": 2, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767070", "admissionRoll": "7-033", "name": "Riazul Hasan", "phone": "01326824561", "guardianPhone": "01791107390", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "767071", "admissionRoll": "7-034", "name": "Md. Nazmul Hossain Shadin", "phone": "01313156323", "guardianPhone": "01318587178", "refSubjects": 3, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767072", "admissionRoll": "7-035", "name": "Ibrahim", "phone": "01799922456", "guardianPhone": "01933011522", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "767077", "admissionRoll": "7-036", "name": "Md. Himayet Hossain", "phone": "01948726378", "guardianPhone": "01928920753", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "767080", "admissionRoll": "7-037", "name": "Mir Md. Nazmul Hasan", "phone": "01957301304", "guardianPhone": "01712108419", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "767081", "admissionRoll": "7-038", "name": "S.M. Tanvir A Noor", "phone": "01797183426", "guardianPhone": "01990981740", "refSubjects": 3, "refSemesters": 2, "status": "pending"}, {"boardRoll": "767083", "admissionRoll": "7-039", "name": "Jabed Hossain", "phone": "01734983524", "guardianPhone": "01708083879", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767084", "admissionRoll": "7-040", "name": "Most.Soniya Akter", "phone": "01967140797", "guardianPhone": "01777512897", "refSubjects": 0, "refSemesters": 0, "status": "pending"}, {"boardRoll": "767088", "admissionRoll": "7-041", "name": "Syamon Muntaha", "phone": "01326838326", "guardianPhone": "01737496170", "refSubjects": 1, "refSemesters": 1, "status": "pending"}, {"boardRoll": "767089", "admissionRoll": "7-042", "name": "Ayasha Rahman Rimi", "phone": "01915233664", "guardianPhone": "01916760796", "refSubjects": 4, "refSemesters": 3, "status": "pending"}, {"boardRoll": "794050", "admissionRoll": "7-043", "name": "Nahidul Islam Nahin", "phone": "01796255953", "guardianPhone": "01613306275", "refSubjects": 7, "refSemesters": 5, "status": "pending"}];
@@ -1494,7 +1526,9 @@
       refCenterFee: +$('r_refCenterFee').value || 0,
       practicalRate: +$('r_practicalRate').value || 0,
       practicalCount: +$('r_practicalCount').value || 0,
-      questionFee: +$('r_questionFee').value || 0
+      questionFee: +$('r_questionFee').value || 0,
+      delayFeePerDay: +$('r_delayFeePerDay').value || 0,
+      delayGraceDays: +$('r_delayGraceDays').value || 0
     };
   }
 
@@ -1508,16 +1542,30 @@
     $('r_practicalRate').value = rates.practicalRate;
     $('r_practicalCount').value = rates.practicalCount;
     $('r_questionFee').value = rates.questionFee;
+    $('r_delayFeePerDay').value = (rates.delayFeePerDay != null) ? rates.delayFeePerDay : DEFAULT_RATES.delayFeePerDay;
+    $('r_delayGraceDays').value = (rates.delayGraceDays != null) ? rates.delayGraceDays : DEFAULT_RATES.delayGraceDays;
   }
 
-  function computeFees(R, S, rt){
-    const exam = rt.examBase + R*rt.refSubFee;
-    const mark = rt.markBase + S*rt.refMarkFee;
-    const center = rt.centerBase + S*rt.refCenterFee;
+  function computeFees(R, S, rt, lateDays){
+    lateDays = Math.max(0, parseInt(lateDays, 10) || 0);
+    const billableLateDays = Math.max(0, lateDays - (rt.delayGraceDays || 0));
+    const examRegular = rt.examBase;
+    const examReferred = R*rt.refSubFee;
+    const markRegular = rt.markBase;
+    const markReferred = S*rt.refMarkFee;
+    const centerRegular = rt.centerBase;
+    const centerReferred = S*rt.refCenterFee;
     const practical = rt.practicalRate * rt.practicalCount;
     const question = rt.questionFee;
-    const total = exam + mark + center + practical + question;
-    return {exam, mark, center, practical, question, total};
+    const delay = billableLateDays * (rt.delayFeePerDay || 0);
+    const exam = examRegular + examReferred;
+    const mark = markRegular + markReferred;
+    const center = centerRegular + centerReferred;
+    const total = exam + mark + center + practical + question + delay;
+    return {
+      examRegular, examReferred, markRegular, markReferred, centerRegular, centerReferred,
+      exam, mark, center, practical, question, delay, lateDays, billableLateDays, total
+    };
   }
 
   function fmt(n){
@@ -1555,35 +1603,44 @@
   }
 
   /* ----- calculator tab ----- */
-  const refSub = $('refSub'), refSem = $('refSem');
+  const refSub = $('refSub'), refSem = $('refSem'), lateDaysInput = $('lateDays');
 
   function clampInputs(){
     let R = parseInt(refSub.value, 10); if(isNaN(R) || R<0) R = 0;
     let S = parseInt(refSem.value, 10); if(isNaN(S) || S<0) S = 0;
+    let L = parseInt(lateDaysInput.value, 10); if(isNaN(L) || L<0) L = 0;
     if(R === 0) S = 0;
     if(S > R) S = R;
     refSub.value = R;
     refSem.value = S;
-    return {R, S};
+    lateDaysInput.value = L;
+    return {R, S, L};
   }
 
   function recalc(pulse){
-    const {R, S} = clampInputs();
+    const {R, S, L} = clampInputs();
     const rt = getRates();
-    const f = computeFees(R, S, rt);
+    const f = computeFees(R, S, rt, L);
 
     $('f_exam').textContent = `${rt.examBase} + ${R}×${rt.refSubFee}`;
     $('f_mark').textContent = `${rt.markBase} + ${S}×${rt.refMarkFee}`;
     $('f_center').textContent = `${rt.centerBase} + ${S}×${rt.refCenterFee}`;
     $('f_practical').textContent = `${rt.practicalRate}×${rt.practicalCount}`;
     $('f_question').textContent = `flat`;
+    $('f_delay').textContent = rt.delayGraceDays
+      ? `${f.billableLateDays}×${rt.delayFeePerDay} (${rt.delayGraceDays} grace days)`
+      : `${L}×${rt.delayFeePerDay}`;
 
     $('v_exam').textContent = fmt(f.exam);
     $('v_mark').textContent = fmt(f.mark);
     $('v_center').textContent = fmt(f.center);
     $('v_practical').textContent = fmt(f.practical);
     $('v_question').textContent = fmt(f.question);
+    $('v_delay').textContent = fmt(f.delay);
     $('v_total').textContent = fmt(f.total);
+
+    const delayLine = $('li_delay');
+    if(delayLine) delayLine.style.display = (L > 0) ? 'flex' : 'none';
 
     if(pulse){
       const st = $('stamp');
@@ -1597,9 +1654,12 @@
   $('subPlus').addEventListener('click', () => { refSub.value = (+refSub.value||0)+1; recalc(true); });
   $('semMinus').addEventListener('click', () => { refSem.value = Math.max(0, (+refSem.value||0)-1); recalc(true); });
   $('semPlus').addEventListener('click', () => { refSem.value = (+refSem.value||0)+1; recalc(true); });
+  $('lateMinus').addEventListener('click', () => { lateDaysInput.value = Math.max(0, (+lateDaysInput.value||0)-1); recalc(true); });
+  $('latePlus').addEventListener('click', () => { lateDaysInput.value = (+lateDaysInput.value||0)+1; recalc(true); });
 
   refSub.addEventListener('input', () => recalc(true));
   refSem.addEventListener('input', () => recalc(true));
+  lateDaysInput.addEventListener('input', () => recalc(true));
 
   document.querySelectorAll('.adv-grid input').forEach(inp => {
     inp.addEventListener('input', async () => {
@@ -1655,7 +1715,7 @@
 
   function renderDetail(s){
     const rt = getRates();
-    const f = computeFees(s.refSubjects||0, s.refSemesters||0, rt);
+    const f = computeFees(s.refSubjects||0, s.refSemesters||0, rt, s.lateDays||0);
     return `
       <div class="sr-detail">
         <div class="detail-grid">
@@ -1664,6 +1724,7 @@
           <div class="detail-fee-line"><span>সেন্টার ফি</span><span>${fmt(f.center)}</span></div>
           <div class="detail-fee-line"><span>প্র্যাকটিকাল ফি</span><span>${fmt(f.practical)}</span></div>
           <div class="detail-fee-line"><span>প্রশ্নপত্র ফি</span><span>${fmt(f.question)}</span></div>
+          ${f.delay > 0 ? `<div class="detail-fee-line" style="color:var(--red-stamp)"><span>বিলম্ব ফি (${s.lateDays||0} দিন)</span><span>${fmt(f.delay)}</span></div>` : ''}
           <div class="detail-fee-line total"><span>সর্বমোট</span><span>${fmt(f.total)}</span></div>
         </div>
         <div class="detail-actions">
@@ -1702,6 +1763,7 @@
           </div>
           <div class="sr-tags">
             <span class="ref-badge">R:${s.refSubjects||0} · S:${s.refSemesters||0}</span>
+            ${(s.lateDays||0) > 0 ? `<span class="ref-badge" style="background:#FBEAE3;border-color:var(--red-stamp);color:var(--red-stamp)">⏱ ${s.lateDays} দিন দেরি</span>` : ''}
             <span class="status-pill ${s.status}">${s.status==='complete' ? 'সম্পন্ন' : 'অসম্পন্ন'}</span>
           </div>
         </div>
@@ -1760,6 +1822,7 @@
     ['f_boardRoll','f_admissionRoll','f_name','f_phone','f_guardianPhone'].forEach(id => $(id).value = '');
     $('f_refSub').value = 0;
     $('f_refSem').value = 0;
+    $('f_lateDays').value = 0;
     $('f_status').value = 'pending';
   }
 
@@ -1782,6 +1845,7 @@
     $('f_guardianPhone').value = s.guardianPhone || '';
     $('f_refSub').value = s.refSubjects || 0;
     $('f_refSem').value = s.refSemesters || 0;
+    $('f_lateDays').value = s.lateDays || 0;
     $('f_status').value = s.status || 'pending';
     $('formTitle').textContent = 'তথ্য সম্পাদনা করুন · Edit Student';
     $('studentForm').style.display = 'block';
@@ -1801,6 +1865,7 @@
     }
     let R = parseInt($('f_refSub').value, 10); if(isNaN(R) || R<0) R = 0;
     let S = parseInt($('f_refSem').value, 10); if(isNaN(S) || S<0) S = 0;
+    let L = parseInt($('f_lateDays').value, 10); if(isNaN(L) || L<0) L = 0;
     if(R === 0) S = 0;
     if(S > R) S = R;
 
@@ -1812,6 +1877,7 @@
       guardianPhone: $('f_guardianPhone').value.trim(),
       refSubjects: R,
       refSemesters: S,
+      lateDays: L,
       status: $('f_status').value
     };
 
@@ -1849,16 +1915,17 @@
     const done  = all.filter(s => s.status === 'complete');
     const pend  = all.filter(s => s.status !== 'complete');
 
-    let grandTotal = 0, grandExam = 0, grandMark = 0, grandCenter = 0, grandPractical = 0, grandQuestion = 0;
+    let grandTotal = 0, grandExam = 0, grandMark = 0, grandCenter = 0, grandPractical = 0, grandQuestion = 0, grandDelay = 0;
 
     const rows = all.map((s, i) => {
-      const f = computeFees(s.refSubjects||0, s.refSemesters||0, rt);
+      const f = computeFees(s.refSubjects||0, s.refSemesters||0, rt, s.lateDays||0);
       grandTotal     += f.total;
       grandExam      += f.exam;
       grandMark      += f.mark;
       grandCenter    += f.center;
       grandPractical += f.practical;
       grandQuestion  += f.question;
+      grandDelay     += f.delay;
       const cls = s.status === 'complete' ? 'rpt-complete' : 'rpt-pending';
       const badge = s.status === 'complete'
         ? '<span class="rpt-status-badge complete">✓ Complete</span>'
@@ -1877,11 +1944,12 @@
           <td class="num">${fmt(f.center)}</td>
           <td class="num">${fmt(f.practical)}</td>
           <td class="num">${fmt(f.question)}</td>
+          <td class="num">${fmt(f.delay)}</td>
           <td class="num" style="font-weight:700">${fmt(f.total)}</td>
         </tr>`;
     }).join('');
 
-    const doneTotal = done.reduce((a,s)=>{ const f=computeFees(s.refSubjects||0,s.refSemesters||0,rt); return a+f.total; },0);
+    const doneTotal = done.reduce((a,s)=>{ const f=computeFees(s.refSubjects||0,s.refSemesters||0,rt,s.lateDays||0); return a+f.total; },0);
 
     return `
       <div class="rpt-head">
@@ -1911,6 +1979,7 @@
           <col class="c-fee">
           <col class="c-fee">
           <col class="c-fee">
+          <col class="c-fee">
         </colgroup>
         <thead>
           <tr>
@@ -1926,6 +1995,7 @@
             <th class="num">Center</th>
             <th class="num">Practical</th>
             <th class="num">Question</th>
+            <th class="num">Delay</th>
             <th class="num">Total</th>
           </tr>
         </thead>
@@ -1938,6 +2008,7 @@
             <td class="num">${fmt(grandCenter)}</td>
             <td class="num">${fmt(grandPractical)}</td>
             <td class="num">${fmt(grandQuestion)}</td>
+            <td class="num">${fmt(grandDelay)}</td>
             <td class="num">${fmt(grandTotal)}</td>
           </tr>
         </tfoot>
@@ -2019,6 +2090,7 @@
 
       const refSub = Math.max(0, parseInt(parts[5]||'0', 10) || 0);
       const refSem = Math.max(0, parseInt(parts[6]||'0', 10) || 0);
+      const lateDays = Math.max(0, parseInt(parts[7]||'0', 10) || 0);
       parsed.push({
         boardRoll,
         admissionRoll: parts[1] || '',
@@ -2027,6 +2099,7 @@
         guardianPhone: parts[4] || '',
         refSubjects:   refSub,
         refSemesters:  refSem,
+        lateDays:      lateDays,
         status:        'pending'
       });
       existingRolls.add(boardRoll.toLowerCase());
@@ -2095,18 +2168,32 @@
 
   function computeInvoiceTotals(list){
     const rt = getRates();
-    const totals = {exam:0, mark:0, center:0, practical:0, question:0, total:0, count:list.length};
+    const totals = {
+      examRegular:0, examReferred:0,
+      markRegular:0, markReferred:0,
+      centerRegular:0, centerReferred:0,
+      practical:0, question:0, delay:0,
+      exam:0, mark:0, center:0,
+      total:0, count:list.length
+    };
     list.forEach(s => {
-      const f = computeFees(s.refSubjects||0, s.refSemesters||0, rt);
+      const f = computeFees(s.refSubjects||0, s.refSemesters||0, rt, s.lateDays||0);
+      totals.examRegular   += f.examRegular;
+      totals.examReferred  += f.examReferred;
+      totals.markRegular   += f.markRegular;
+      totals.markReferred  += f.markReferred;
+      totals.centerRegular += f.centerRegular;
+      totals.centerReferred+= f.centerReferred;
+      totals.practical += f.practical;
+      totals.question += f.question;
+      totals.delay += f.delay;
       totals.exam += f.exam;
       totals.mark += f.mark;
       totals.center += f.center;
-      totals.practical += f.practical;
-      totals.question += f.question;
       totals.total += f.total;
     });
     totals.board = totals.exam + totals.mark;
-    totals.institution = totals.center + totals.practical + totals.question;
+    totals.institution = totals.center + totals.practical + totals.question + totals.delay;
     return totals;
   }
 
@@ -2123,18 +2210,22 @@
 
     const rows = list.map((s, i) => {
       const rt = getRates();
-      const f = computeFees(s.refSubjects||0, s.refSemesters||0, rt);
+      const f = computeFees(s.refSubjects||0, s.refSemesters||0, rt, s.lateDays||0);
       return `
         <tr>
           <td>${i+1}</td>
           <td>${escapeHtml(s.boardRoll || '—')}</td>
           <td>${s.name ? escapeHtml(s.name) : '—'}</td>
-          <td class="num">${fmt(f.exam)}</td>
-          <td class="num">${fmt(f.mark)}</td>
-          <td class="num">${fmt(f.center)}</td>
-          <td class="num">${fmt(f.practical)}</td>
+          <td class="num">${fmt(f.examRegular)}</td>
+          <td class="num">${fmt(f.markRegular)}</td>
+          <td class="num">${fmt(f.markReferred)}</td>
           <td class="num">${fmt(f.question)}</td>
-          <td class="num">${fmt(f.total)}</td>
+          <td class="num">${fmt(f.examReferred)}</td>
+          <td class="num">${fmt(f.delay)}</td>
+          <td class="num">${fmt(f.centerRegular)}</td>
+          <td class="num">${fmt(f.centerReferred)}</td>
+          <td class="num">${fmt(f.practical)}</td>
+          <td class="num" style="font-weight:700">${fmt(f.total)}</td>
         </tr>`;
     }).join('');
 
@@ -2160,11 +2251,15 @@
           </tr>
         </thead>
         <tbody>
-          <tr><td>পরীক্ষার ফি · Exam Fee</td><td class="num">${fmt(t.exam)}</td></tr>
-          <tr><td>মার্কশীট ফি · Marksheet Fee</td><td class="num">${fmt(t.mark)}</td></tr>
-          <tr><td>সেন্টার ফি · Center Fee</td><td class="num">${fmt(t.center)}</td></tr>
-          <tr><td>প্র্যাকটিকাল ফি · Practical Fee</td><td class="num">${fmt(t.practical)}</td></tr>
+          <tr><td>পরীক্ষার ফি (নিয়মিত) · Exam Fee Regular</td><td class="num">${fmt(t.examRegular)}</td></tr>
+          <tr><td>মার্কশীট ফি (নিয়মিত) · Marksheet Fee Regular</td><td class="num">${fmt(t.markRegular)}</td></tr>
+          <tr><td>মার্কশীট ফি (রেফার্ড) · Marksheet Fee Referred</td><td class="num">${fmt(t.markReferred)}</td></tr>
           <tr><td>প্রশ্নপত্র ফি · Question Fee</td><td class="num">${fmt(t.question)}</td></tr>
+          <tr><td>রেফার্ড পরীক্ষার ফি · Referred Exam Fee</td><td class="num">${fmt(t.examReferred)}</td></tr>
+          ${t.delay > 0 ? `<tr><td>বিলম্ব ফি · Delay Fee</td><td class="num">${fmt(t.delay)}</td></tr>` : ''}
+          <tr><td>সেন্টার ফি (নিয়মিত) · Centre Fee Regular</td><td class="num">${fmt(t.centerRegular)}</td></tr>
+          <tr><td>সেন্টার ফি (রেফার্ড) · Centre Fee Referred</td><td class="num">${fmt(t.centerReferred)}</td></tr>
+          <tr><td>প্র্যাকটিকাল ফি · Practical Fee</td><td class="num">${fmt(t.practical)}</td></tr>
         </tbody>
         <tfoot>
           <tr><td>Grand Total</td><td class="num">${fmt(t.total)}</td></tr>
@@ -2181,7 +2276,7 @@
         <div class="inv-split-card inst">
           <div class="inv-split-label">Institution's Share</div>
           <div class="inv-split-amount">${fmt(t.institution)}</div>
-          <div class="inv-split-sub">Center (${fmt(t.center)}) + Practical (${fmt(t.practical)}) + Question (${fmt(t.question)}) — ${pct(t.institution, t.total)}% of total</div>
+          <div class="inv-split-sub">Center (${fmt(t.center)}) + Practical (${fmt(t.practical)}) + Question (${fmt(t.question)})${t.delay > 0 ? ` + Delay (${fmt(t.delay)})` : ''} — ${pct(t.institution, t.total)}% of total</div>
         </div>
       </div>
 
@@ -2191,16 +2286,28 @@
       </div>
 
       <div class="inv-section-title">শিক্ষার্থীভিত্তিক বিবরণ · Per-Student Breakdown</div>
-      <table class="inv-table">
+      <div style="width:100%; overflow-x:auto;">
+      <table class="inv-table" style="font-size:10.5px; table-layout:fixed; min-width:760px;">
         <thead>
           <tr>
-            <th>#</th><th>Board Roll</th><th>Name</th>
-            <th class="num">Exam</th><th class="num">Mark</th><th class="num">Center</th>
-            <th class="num">Practical</th><th class="num">Question</th><th class="num">Total</th>
+            <th style="width:22px;">#</th>
+            <th style="width:70px;">Board Roll</th>
+            <th>Name</th>
+            <th class="num">Exam<br>Reg.</th>
+            <th class="num">Mark<br>Reg.</th>
+            <th class="num">Mark<br>Ref.</th>
+            <th class="num">Question</th>
+            <th class="num">Exam<br>Ref.</th>
+            <th class="num">Delay</th>
+            <th class="num">Centre<br>Reg.</th>
+            <th class="num">Centre<br>Ref.</th>
+            <th class="num">Practical</th>
+            <th class="num">Total</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
+      </div>
 
       <div class="inv-foot">
         <div class="inv-sign"><div class="inv-sign-line">Prepared By</div></div>
@@ -2210,7 +2317,7 @@
 
       <div class="inv-note">
         This invoice summarizes form fill-up fee transactions for students marked "Complete" (সম্পন্ন) as of ${today}. Pending transactions are excluded.
-        Board's share covers Exam and Marksheet fees; the Institution's share covers Center, Practical, and Question fees.
+        Board's share covers regular + referred Exam fees and regular + referred Marksheet fees; the Institution's share covers Centre (regular + referred), Practical, Question, and Delay fees.
         Figures are based on the fee rates configured in the Calculator tab at the time of generation.
       </div>
     `;
